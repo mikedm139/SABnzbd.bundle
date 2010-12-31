@@ -84,7 +84,7 @@ def SabQueue(sender):
     
     for item in queue['slots']:
         dir.Append(Function(DirectoryItem(QueueMenu, title=item['filename'],
-            subtitle='Size: '+item['sizeleft']+'/'+item['size'], infoLabel=item['percentage'],
+            subtitle='Size: '+item['sizeleft']+'/'+item['size'], infoLabel=item['percentage']+'%',
             summary='Category: '+item['cat']+'\nPriority: '+item['priority']+'\nScript: '+item['script']+
             '\nTimeLeft: '+item['timeleft'], thumb=R(ICON)), nzo_id=item['nzo_id'], name=item['filename']))
     
