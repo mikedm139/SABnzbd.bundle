@@ -1,0 +1,41 @@
+[
+        {
+                "id":       "sabUser",
+                "label":    "SABnzbd Username",
+                "type":     "text",
+                "default":  ""
+        },
+        {
+                "id":       "sabPass",
+                "label":    "SABnzbd+ Password",
+                "type":     "text",
+                "option":   "hidden",
+                "default":  ""
+        },
+        {
+                "id":       "sabHost",
+                "label":    "SABnzbd+ Host",
+                "type":     "text",
+                "default":  "127.0.0.1"
+        },
+        {
+                "id":       "sabPort",
+                "label":    "SABnzbd+ Port",
+                "type":     "text",
+                "default":  "8080"
+        },
+        {
+                "id":       "sabAPI",
+                "label":    "SABnzbd+ API key",
+                "type":     "text",
+                "default":  ""
+        },
+        {
+                "id":       "historyItems",
+                "label":    "Number of items to display in history",
+                "type":     "text",
+                "default":  "20"
+        }
+]
+
+
