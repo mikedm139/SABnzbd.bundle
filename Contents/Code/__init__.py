@@ -16,7 +16,9 @@ def Start():
     MediaContainer.art = R(ART)
     MediaContainer.title1 = NAME
     MediaContainer.viewGroup = 'InfoList'
+
     DirectoryItem.thumb = R(ICON)
+    PopupDirectoryItem.thumb = R(ICON)
 
     HTTP.SetCacheTime = 1
 
@@ -26,7 +28,7 @@ def AuthHeader():
     header = {}
 
     if Prefs['sabUser'] and Prefs['sabPass']:
-        header = {'Authorization': 'Basic ' + base64.b64encode([Prefs['sabUser'] + ':' + Prefs['sabPass'])}
+        header = {'Authorization': 'Basic ' + b64encode(Prefs['sabUser'] + ':' + Prefs['sabPass'])}
 
     return header
 
@@ -51,31 +53,38 @@ def ValidatePrefs():
     if auth_type == 'apikey':
         if not Prefs['sabApiKey']:
             return MessageContainer(NAME, 'You must enter your SABnzbd+ API key for the plugin to function properly.')
-    else
-        return
 
 ####################################################################################################
     
 def MainMenu():
     dir = MediaContainer(noCache=True)
-    dir.Append(Function(DirectoryItem(SabQueue, title='Queue', subtitle='View and make changes to the SABnzbd+ queue.',
-        summary='View the queue. Change the order of queued donwloads, delete items from the queue.')))
-    dir.Append(Function(DirectoryItem(SabHistory, title='History', subtitle='View SABnzbd\'s download history.',
-        summary='Number of items to display is set in preferences.')))
 
-    sabStatus = GetQueue()
-    if sabStatus['paused'] != True:
-        dir.Append(Function(PopupDirectoryItem(PauseMenu, title='Pause', subtitle='Pause downloading for a specified time period.',
-            summary = 'Choose a time period from the list and downloading will resume automatically')))
-    else:
-        dir.Append(Function(DirectoryItem(ResumeSab, title='Resume', subtitle='Resume downloading')))
+    try:
+        test = HTTP.Request(GetSabApiUrl('auth'))
+        new_user = False
+    except:
+        new_user = True
 
-    dir.Append(Function(DirectoryItem(RestartSab, title='Restart', subtitle='Restart SABnzbd+',
-        summary='It may take a minute or two before SABnzbd+ is back online and functions are accessible.')))
-    dir.Append(Function(DirectoryItem(ShutdownSab, title='ShutDown', subtitle='Shut down SABnzbd+',
-        summary='If you shut down SABnzbd+, you will have to exit Plex to restart it manually.')))
+    if new_user == False:
+        dir.Append(Function(DirectoryItem(SabQueue, title='Queue', subtitle='View and make changes to the SABnzbd+ queue.',
+            summary='View the queue. Change the order of queued donwloads, delete items from the queue.')))
+        dir.Append(Function(DirectoryItem(SabHistory, title='History', subtitle='View SABnzbd\'s download history.',
+            summary='Number of items to display is set in preferences.')))
+
+        sabStatus = GetQueue()
+        if sabStatus['paused'] != True:
+            dir.Append(Function(PopupDirectoryItem(PauseMenu, title='Pause', subtitle='Pause downloading for a specified time period.',
+                summary = 'Choose a time period from the list and downloading will resume automatically')))
+        else:
+            dir.Append(Function(DirectoryItem(ResumeSab, title='Resume', subtitle='Resume downloading')))
+
+        dir.Append(Function(DirectoryItem(RestartSab, title='Restart', subtitle='Restart SABnzbd+',
+            summary='It may take a minute or two before SABnzbd+ is back online and functions are accessible.')))
+        dir.Append(Function(DirectoryItem(ShutdownSab, title='ShutDown', subtitle='Shut down SABnzbd+',
+            summary='If you shut down SABnzbd+, you will have to exit Plex to restart it manually.')))
+
     dir.Append(PrefsItem(title='Preferences', subtitle='For SABnzbd+ plug-in',
-        summary='Set plug-in preferences to allow proper communication with SABnzbd+'))
+        summary='Set plug-in preferences to allow proper communication with SABnzbd+', thumb=R('icon-prefs.png')))
     return dir
 
 ####################################################################################################  
@@ -89,7 +98,10 @@ def SabQueue(sender):
         dir.Append(Function(DirectoryItem(QueueMenu, title=item['filename'],
             subtitle='Size: '+item['sizeleft']+'/'+item['size'], infoLabel=item['percentage']+'%',
             summary='Category: '+item['cat']+'\nPriority: '+item['priority']+'\nScript: '+item['script']+
-            '\nTimeLeft: '+item['timeleft'], thumb=R(ICON)), nzo_id=item['nzo_id'], name=item['filename']))
+            '\nTimeLeft: '+item['timeleft']), nzo_id=item['nzo_id'], name=item['filename']))
+
+    if len(dir) == 0:
+        return MessageContainer(NAME, 'The queue is empty.')
 
     return dir
 
@@ -102,9 +114,13 @@ def SabHistory(sender):
     for item in history['slots']:
         dir.Append(Function(PopupDirectoryItem(HistoryMenu, title=item['name'], subtitle='Size: '+item['size'],
             infoLabel=item['status'], summary='Category: '+item['category']+'\nScript: '+item['script']+
-            '\nFilePath: '+item['storage']+'\nTime to donwload: '+str(item['download_time']//3600)+' hours, '+
-            str((item['download_time']%3600)//60)+' minutes, '+str((item['download_time']%3600)%60)+' seconds.',
-            thumb=R(ICON)), nzo_id=item['nzo_id']))
+            '\nFilePath: '+item['storage']+'\nTime to download: '+str(item['download_time']//3600)+' hours, '+
+            str((item['download_time']%3600)//60)+' minutes, '+str((item['download_time']%3600)%60)+' seconds.'),
+            nzo_id=item['nzo_id']))
+
+    if len(dir) == 0:
+        return MessageContainer(NAME, 'History is empty.')
+
     return dir
 
 ####################################################################################################
@@ -268,7 +284,7 @@ def ScriptMenu(sender, nzo_id):
     dir = MediaContainer(title2='Scripts')
 
     mode = 'get_scripts&output=json'
-    scripts = JSON.ObjectFromURL(GetSabApiUrl(mode), errors'ignore', headers=AuthHeader())
+    scripts = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
     for script in scripts['scripts']:
         dir.Append(Function(DirectoryItem(ChangeScript, title=script), nzo_id=nzo_id, script=script))
 
