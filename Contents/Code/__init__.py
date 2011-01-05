@@ -38,8 +38,8 @@ def GetSabUrl():
 ####################################################################################################
 
 def GetSabApiUrl(mode):
-    if Prefs['sabAPI']:
-        return GetSabUrl() + '/api?mode=%s&apikey=%s' % (mode, Prefs['sabAPI'])
+    if Prefs['sabApiKey']:
+        return GetSabUrl() + '/api?mode=%s&apikey=%s' % (mode, Prefs['sabApiKey'])
     else:
         return GetSabUrl() + '/api?mode=%s' % (mode)
 
@@ -49,7 +49,7 @@ def ValidatePrefs():
     auth_type = HTTP.Request(GetSabUrl() + '/sabnzbd/api?mode=auth')
 
     if auth_type == 'apikey':
-        if not Prefs['sabAPI']:
+        if not Prefs['sabApiKey']:
             return MessageContainer(NAME, 'You must enter your SABnzbd+ API key for the plugin to function properly.')
     else
         return

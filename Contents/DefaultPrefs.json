@@ -25,7 +25,7 @@
                 "default":  "8080"
         },
         {
-                "id":       "sabAPI",
+                "id":       "sabApiKey",
                 "label":    "SABnzbd+ API key",
                 "type":     "text",
                 "default":  ""
