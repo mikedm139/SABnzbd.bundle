@@ -7,13 +7,10 @@ NAME          = 'SABnzbd+'
 ART           = 'art-default.png'
 ICON          = 'icon-default.png'
 
-AUTH_TYPE     = ''
-API_QUERY_URL = ''
-
 ####################################################################################################
 
 def Start():
-    Plugin.AddPrefixHandler(PREFIX, ApplicationsMainMenu, NAME, ICON, ART)
+    Plugin.AddPrefixHandler(PREFIX, MainMenu, NAME, ICON, ART)
     Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
     MediaContainer.art = R(ART)
@@ -22,12 +19,6 @@ def Start():
     DirectoryItem.thumb = R(ICON)
 
     HTTP.SetCacheTime = 1
-
-    global AUTH_TYPE
-    AUTH_TYPE = HTTP.Request(GetSabUrl() + '/sabnzbd/api?mode=auth')
-
-    global API_QUERY_URL
-    API_QUERY_URL = GetSabUrl() + '/api?mode=%s&apikey=%s'
 
 ####################################################################################################
 
@@ -42,13 +33,22 @@ def AuthHeader():
 ####################################################################################################
 
 def GetSabUrl():
-    url = 'http://' + Prefs['sabHost'] + ':' + Prefs['sabPort']
-    return url
+    return 'http://' + Prefs['sabHost'] + ':' + Prefs['sabPort']
+
+####################################################################################################
+
+def GetSabApiUrl(mode):
+    if Prefs['sabAPI']:
+        return GetSabUrl() + '/api?mode=%s&apikey=%s' % (mode, Prefs['sabAPI'])
+    else:
+        return GetSabUrl() + '/api?mode=%s' % (mode)
 
 ####################################################################################################
 
 def ValidatePrefs():
-    if AUTH_TYPE == 'apikey':
+    auth_type = HTTP.Request(GetSabUrl() + '/sabnzbd/api?mode=auth')
+
+    if auth_type == 'apikey':
         if not Prefs['sabAPI']:
             return MessageContainer(NAME, 'You must enter your SABnzbd+ API key for the plugin to function properly.')
     else
@@ -56,7 +56,7 @@ def ValidatePrefs():
 
 ####################################################################################################
     
-def ApplicationsMainMenu():
+def MainMenu():
     dir = MediaContainer(noCache=True)
     dir.Append(Function(DirectoryItem(SabQueue, title='Queue', subtitle='View and make changes to the SABnzbd+ queue.',
         summary='View the queue. Change the order of queued donwloads, delete items from the queue.')))
@@ -111,16 +111,14 @@ def SabHistory(sender):
 
 def GetQueue():
     mode = 'queue&start=0&output=json'
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    queue = JSON.ObjectFromURL(url, errors='ignore', headers=AuthHeader())
+    queue = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
     return queue['queue']
 
 ####################################################################################################
 
 def GetHistory():
     mode = 'history&start=0&limit=%s&output=json' % (Prefs['historyItems'])
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    history = JSON.ObjectFromURL(url, errors='ignore', headers=AuthHeader())
+    history = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
     return history['history']
 
 ####################################################################################################
@@ -146,9 +144,7 @@ def PauseSab(sender, pauseLength):
     else:
         mode = 'config&name=set_pause&value=%d' % pauseLength
 
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    Log(url)
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'Downloading paused.')
@@ -158,8 +154,7 @@ def PauseSab(sender, pauseLength):
 def ResumeSab(sender):
 
     mode = 'resume'
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'Downloading resumed.')
@@ -169,8 +164,7 @@ def ResumeSab(sender):
 def RestartSab(sender):
 
     mode = 'restart'
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'SABnzdb+ is restarting.')
@@ -180,8 +174,7 @@ def RestartSab(sender):
 def ShutdownSab(sender):
 
     mode = 'shutdown'
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'SABnzdb+ shutting down.')
@@ -230,8 +223,7 @@ def PriorityMenu(sender, nzo_id):
 def ChangePriority(sender, nzo_id, priority):
 
     mode = 'queue&name=priority&value=%s&value2=%d' % (nzo_id, priority)
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'Item priority changed')
@@ -241,8 +233,7 @@ def ChangePriority(sender, nzo_id, priority):
 def MoveItem(sender, query, nzo_id):
 
     mode = 'switch&value=%s&value2=%s' % (nzo_id, query)
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'Moving item to slot #%s' % query)
@@ -254,8 +245,7 @@ def CategoryMenu(sender, nzo_id):
     dir = MediaContainer(title2='Categories')
 
     mode = 'get_cats&output=json'
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    categories = JSON.ObjectFromURL(url, errors='ignore', headers=AuthHeader())
+    categories = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
     for category in categories['categories']:
         dir.Append(Function(DirectoryItem(ChangeCategory, title=category), nzo_id=nzo_id, category=catedory))
 
@@ -266,8 +256,7 @@ def CategoryMenu(sender, nzo_id):
 def ChangeCategory(sender, nzo_id, category):
 
     mode = 'change_cat&value=%s&value2=%s' % (nzo_id, category)
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'Category changed for this item.')
@@ -279,8 +268,7 @@ def ScriptMenu(sender, nzo_id):
     dir = MediaContainer(title2='Scripts')
 
     mode = 'get_scripts&output=json'
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    scripts = JSON.ObjectFromURL(url, errors'ignore', headers=AuthHeader())
+    scripts = JSON.ObjectFromURL(GetSabApiUrl(mode), errors'ignore', headers=AuthHeader())
     for script in scripts['scripts']:
         dir.Append(Function(DirectoryItem(ChangeScript, title=script), nzo_id=nzo_id, script=script))
 
@@ -291,8 +279,7 @@ def ScriptMenu(sender, nzo_id):
 def ChangeScript(sender, nzo_id, script):
 
     mode = 'change_script&value=%s&value2=%s' % (nzo_id, script)
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'Post-processung script changed for this item.')
@@ -315,8 +302,7 @@ def PostProcessingMenu(sender, nzo_id):
 def ChangePostProcessing(sender, nzo_id, process):
 
     mode = 'change_opts&value=%s&value2=%s' % (nzo_id, process)
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'Post-processung work-flow changed for this item.')
@@ -336,8 +322,7 @@ def DeleteMenu(sender, nzo_id):
 def DeleteFromQueue(sender, nzo_id):
 
     mode = 'queue&name=delete&value=%s' % nzo_id
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'Deleting item from queue.')
@@ -347,8 +332,7 @@ def DeleteFromQueue(sender, nzo_id):
 def RetryDownload(sender, nzo_id):
 
     mode = 'retry&value=%s' % nzo_id
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'Item re-added to queue.')
@@ -358,8 +342,7 @@ def RetryDownload(sender, nzo_id):
 def DeleteFromHistory(sender, nzo_id):
 
     mode = 'history&name=delete&value=%s' % nzo_id
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'Item deleted from history.')
@@ -369,8 +352,7 @@ def DeleteFromHistory(sender, nzo_id):
 def ClearHistory(sender):
 
     mode = 'history&name=delete&value=all'
-    url = API_QUERY_URL % (mode, Prefs['sabAPI'])
-    response = HTTP.Request(url, errors='ignore', headers=AuthHeader()).content
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
     return MessageContainer(NAME, 'All items cleared from history.')
