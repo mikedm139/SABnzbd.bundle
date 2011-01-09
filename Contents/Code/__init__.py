@@ -20,7 +20,7 @@ def Start():
     DirectoryItem.thumb = R(ICON)
     PopupDirectoryItem.thumb = R(ICON)
 
-    HTTP.SetCacheTime = 1
+    HTTP.CacheTime = 1
 
 ####################################################################################################
 
