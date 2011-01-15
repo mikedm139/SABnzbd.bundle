@@ -97,7 +97,7 @@ def SabQueue(sender):
     for item in queue['slots']:
         dir.Append(Function(DirectoryItem(QueueMenu, title=item['filename'],
             subtitle='Size: '+item['sizeleft']+'/'+item['size'], infoLabel=item['percentage']+'%',
-            summary='Category: '+item['cat']+'\nPriority: '+item['priority']+'\nScript: '+item['script']+
+            summary='Category: '+str(item['cat'])+'\nPriority: '+item['priority']+'\nScript: '+item['script']+
             '\nTimeLeft: '+item['timeleft']), nzo_id=item['nzo_id'], name=item['filename']))
 
     if len(dir) == 0:
@@ -113,7 +113,7 @@ def SabHistory(sender):
 
     for item in history['slots']:
         dir.Append(Function(PopupDirectoryItem(HistoryMenu, title=item['name'], subtitle='Size: '+item['size'],
-            infoLabel=item['status'], summary='Category: '+item['category']+'\nScript: '+item['script']+
+            infoLabel=item['status'], summary='Category: '+str(item['category'])+'\nScript: '+item['script']+
             '\nFilePath: '+item['storage']+'\nTime to download: '+str(item['download_time']//3600)+' hours, '+
             str((item['download_time']%3600)//60)+' minutes, '+str((item['download_time']%3600)%60)+' seconds.'),
             nzo_id=item['nzo_id']))
