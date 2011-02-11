@@ -2,7 +2,9 @@ from base64 import b64encode
 
 ####################################################################################################
 
-PREFIX        = '/applications/sabnzbd'
+APPLICATIONS_PREFIX = '/applications/sabnzbd'
+VIDEO_PREFIX        = '/video/sabnzbd'
+
 NAME          = 'SABnzbd+'
 ART           = 'art-default.png'
 ICON          = 'icon-default.png'
@@ -10,7 +12,8 @@ ICON          = 'icon-default.png'
 ####################################################################################################
 
 def Start():
-    Plugin.AddPrefixHandler(PREFIX, MainMenu, NAME, ICON, ART)
+    Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, NAME, ICON, ART)
+    Plugin.AddPrefixHandler(VIDEO_PREFIX, MainMenu, NAME, ICON, ART)
     Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
     MediaContainer.art = R(ART)
@@ -202,7 +205,7 @@ def QueueMenu(sender, nzo_id, name):
     dir = MediaContainer(title2=name)
 
     dir.Append(Function(PopupDirectoryItem(PriorityMenu, 'Change Priority'), nzo_id=nzo_id))
-    dir.Append(Function(InputDirectoryItem(MoveItem, 'Move item to new position in queue'), nzo_id=nzo_id))
+    #dir.Append(Function(InputDirectoryItem(MoveItem, 'Move item to new position in queue'), nzo_id=nzo_id))
     dir.Append(Function(PopupDirectoryItem(CategoryMenu, 'Change Category'), nzo_id=nzo_id))
     dir.Append(Function(PopupDirectoryItem(ScriptMenu, 'Change Script'), nzo_id=nzo_id))
     dir.Append(Function(PopupDirectoryItem(PostProcessingMenu, 'Change Post-processing'), nzo_id=nzo_id))
@@ -246,7 +249,7 @@ def ChangePriority(sender, nzo_id, priority):
 
 ####################################################################################################
 
-def MoveItem(sender, query, nzo_id):
+def MoveItem(sender, query, nzo_id): ### Currently non-functioning
 
     mode = 'switch&value=%s&value2=%s' % (nzo_id, query)
     response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
@@ -263,7 +266,7 @@ def CategoryMenu(sender, nzo_id):
     mode = 'get_cats&output=json'
     categories = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
     for category in categories['categories']:
-        dir.Append(Function(DirectoryItem(ChangeCategory, title=category), nzo_id=nzo_id, category=catedory))
+        dir.Append(Function(DirectoryItem(ChangeCategory, title=category), nzo_id=nzo_id, category=category))
 
     return dir
 
