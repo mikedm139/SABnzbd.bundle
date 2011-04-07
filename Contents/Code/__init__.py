@@ -51,7 +51,7 @@ def GetSabApiUrl(mode):
 ####################################################################################################
 
 def ValidatePrefs():
-    auth_type = HTTP.Request(GetSabUrl() + '/sabnzbd/api?mode=auth')
+    auth_type = HTTP.Request(GetSabUrl() + '/sabnzbd/api?mode=auth').content
 
     if auth_type == 'apikey':
         if not Prefs['sabApiKey']:
