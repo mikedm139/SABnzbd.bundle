@@ -3,7 +3,6 @@ from base64 import b64encode
 ####################################################################################################
 
 APPLICATIONS_PREFIX = '/applications/sabnzbd'
-VIDEO_PREFIX        = '/video/sabnzbd'
 
 NAME          = 'SABnzbd+'
 ART           = 'art-default.png'
@@ -13,7 +12,6 @@ ICON          = 'icon-default.png'
 
 def Start():
     Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, NAME, ICON, ART)
-    Plugin.AddPrefixHandler(VIDEO_PREFIX, MainMenu, NAME, ICON, ART)
     Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
     MediaContainer.art = R(ART)
@@ -24,7 +22,7 @@ def Start():
     PopupDirectoryItem.thumb = R(ICON)
 
     HTTP.CacheTime = 1
-
+    
 ####################################################################################################
 
 def AuthHeader():
@@ -43,15 +41,23 @@ def GetSabUrl():
 ####################################################################################################
 
 def GetSabApiUrl(mode):
-    if Prefs['sabApiKey']:
-        return GetSabUrl() + '/api?mode=%s&apikey=%s' % (mode, Prefs['sabApiKey'])
+    if Dict['sabApiKey']:
+        return GetSabUrl() + '/api?mode=%s&apikey=%s' % (mode, Dict['sabApiKey'])
     else:
         return GetSabUrl() + '/api?mode=%s' % (mode)
 
 ####################################################################################################
 
+def ApiKey():
+    if not Prefs['sabApiKey']:
+        apiKey = HTML.ElementFromURL(GetSabUrl() + '/config/general', headers=(AuthHeader())).xpath('//input[@id="apikey"]')[0].get('value')
+        return apiKey
+    else: return Prefs['sabApiKey']
+
+####################################################################################################
+
 def ValidatePrefs():
-    auth_type = HTTP.Request(GetSabUrl() + '/sabnzbd/api?mode=auth').content
+    auth_type = HTTP.Request(GetSabUrl() + '/sabnzbd/api?mode=auth')
 
     if auth_type == 'apikey':
         if not Prefs['sabApiKey']:
@@ -62,11 +68,17 @@ def ValidatePrefs():
 def MainMenu():
     dir = MediaContainer(noCache=True)
 
+    if not Dict['sabApiKey']:
+        Dict['sabApiKey'] = ApiKey()
+    
     try:
-        test = HTTP.Request(GetSabApiUrl('auth'))
-        new_user = False
+        mode = 'queue&start=0&output=json'
+        test = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
+        if test['queue']:
+            new_user = False
     except:
         new_user = True
+        Dict['sabApiKey'] = ApiKey()
 
     if new_user == False:
         dir.Append(Function(DirectoryItem(SabQueue, title='Queue', subtitle='View and make changes to the SABnzbd+ queue.',
@@ -95,14 +107,17 @@ def MainMenu():
 def SabQueue(sender):
     dir = MediaContainer(title2='Queue', noCache=True)
 
-    queue = GetQueue()
+    try:
+        queue = GetQueue()
 
-    for item in queue['slots']:
-        dir.Append(Function(DirectoryItem(QueueMenu, title=item['filename'],
-            subtitle='Size: '+item['sizeleft']+'/'+item['size'], infoLabel=item['percentage']+'%',
-            summary='Category: '+str(item['cat'])+'\nPriority: '+item['priority']+'\nScript: '+item['script']+
-            '\nTimeLeft: '+item['timeleft']), nzo_id=item['nzo_id'], name=item['filename']))
-
+        for item in queue['slots']:
+            dir.Append(Function(DirectoryItem(QueueMenu, title=item['filename'],
+                subtitle='Size: '+item['sizeleft']+'/'+item['size'], infoLabel=item['percentage']+'%',
+                summary='Category: '+str(item['cat'])+'\nPriority: '+item['priority']+'\nScript: '+item['script']+
+                '\nTimeLeft: '+item['timeleft']), nzo_id=item['nzo_id'], name=item['filename']))
+    except:
+        return MessageContainer(NAME, 'Error loading queue')
+    
     if len(dir) == 0:
         return MessageContainer(NAME, 'The queue is empty.')
 
