@@ -67,11 +67,10 @@ def ValidatePrefs():
     
 def MainMenu():
     dir = MediaContainer(noCache=True)
-
-    if not Dict['sabApiKey']:
-        Dict['sabApiKey'] = ApiKey()
     
     try:
+        if not Dict['sabApiKey']:
+            Dict['sabApiKey'] = ApiKey()
         mode = 'queue&start=0&output=json'
         test = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
         if test['queue']:
