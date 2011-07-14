@@ -50,8 +50,11 @@ def GetSabApiUrl(mode):
 
 def ApiKey():
     if not Prefs['sabApiKey']:
-        apiKey = HTML.ElementFromURL(GetSabUrl() + '/config/general', headers=(AuthHeader())).xpath('//input[@id="apikey"]')[0].get('value')
-        return apiKey
+        try:
+            apiKey = HTML.ElementFromURL(GetSabUrl() + '/config/general', headers=(AuthHeader())).xpath('//input[@id="apikey"]')[0].get('value')
+            return apiKey
+        except:
+            return None
     else: return Prefs['sabApiKey']
 
 ####################################################################################################
