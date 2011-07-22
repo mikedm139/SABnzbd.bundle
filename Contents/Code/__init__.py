@@ -2,7 +2,7 @@ from base64 import b64encode
 
 ####################################################################################################
 
-APPLICATIONS_PREFIX = '/applications/sabnzbd'
+PREFIX = '/video/sabnzbd'
 
 NAME          = 'SABnzbd+'
 ART           = 'art-default.png'
@@ -11,7 +11,7 @@ ICON          = 'icon-default.png'
 ####################################################################################################
 
 def Start():
-    Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, NAME, ICON, ART)
+    Plugin.AddPrefixHandler(PREFIX, MainMenu, NAME, ICON, ART)
     Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
     MediaContainer.art = R(ART)
