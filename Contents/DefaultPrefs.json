@@ -25,12 +25,6 @@
                 "default":  "8080"
         },
         {
-                "id":       "sabApiKey",
-                "label":    "SABnzbd+ API key",
-                "type":     "text",
-                "default":  ""
-        },
-        {
                 "id":       "historyItems",
                 "label":    "Number of items to display in history",
                 "type":     "enum",
