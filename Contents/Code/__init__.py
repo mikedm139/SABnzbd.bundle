@@ -49,23 +49,16 @@ def GetSabApiUrl(mode):
 ####################################################################################################
 
 def ApiKey():
-    if not Prefs['sabApiKey']:
-        try:
-            apiKey = HTML.ElementFromURL(GetSabUrl() + '/config/general', headers=(AuthHeader())).xpath('//input[@id="apikey"]')[0].get('value')
-            return apiKey
-        except:
-            return None
-    else: return Prefs['sabApiKey']
+    try:
+        apiKey = HTML.ElementFromURL(GetSabUrl() + '/config/general', headers=(AuthHeader())).xpath('//input[@id="apikey"]')[0].get('value')
+        return apiKey
+    except:
+        return None
 
 ####################################################################################################
 
 def ValidatePrefs():
-    auth_type = HTTP.Request(GetSabUrl() + '/sabnzbd/api?mode=auth')
-
-    if auth_type == 'apikey':
-        if not Prefs['sabApiKey']:
-            return MessageContainer(NAME, 'You must enter your SABnzbd+ API key for the plugin to function properly.')
-
+    return
 ####################################################################################################
     
 def MainMenu():
