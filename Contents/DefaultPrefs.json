@@ -30,5 +30,11 @@
                 "type":     "enum",
                 "values":   ["10", "20", "30", "40", "50", "100"],
                 "default":  "20"
+        },
+        {
+                "id":       "speedlimit",
+                "label":    "Default Speed Limit",
+                "type":     "text",
+                "default":  ""
         }
 ]
