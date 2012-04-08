@@ -40,7 +40,6 @@ def GetSabUrl():
         url =  'https://%s:%s' % (Prefs['sabHost'], Prefs['sabPort'])
     else:
         url =  'http://%s:%s' % (Prefs['sabHost'], Prefs['sabPort'])
-    Log(url)
     return url
 
 ####################################################################################################
@@ -59,11 +58,8 @@ def GetSabApiUrl(mode):
 
 def ApiKey():
     try:
-        Log(GetSabUrl())
         url = GetSabUrl() + '/config/general'
-        Log(url)
         headers = AuthHeader()
-        Log(headers)
         configPage = HTML.ElementFromURL(url, headers=headers)
         apiKey = configPage.xpath('//input[@id="apikey"]')[0].get('value')
         Dict['sabApiKey'] = apiKey
@@ -76,11 +72,6 @@ def ApiKey():
 ####################################################################################################
 
 def ValidatePrefs():
-    Log("User: %s " % Prefs['sabUser'])
-    Log("Pass: %s " % Prefs['sabPass'])
-    Log("IP: %s " % Prefs['sabHost'])
-    Log("Port: %s " % Prefs['sabPort'])
-    Log("API Key: %s " % ApiKey())
     return
 ####################################################################################################
     
