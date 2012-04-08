@@ -36,7 +36,12 @@ def AuthHeader():
 ####################################################################################################
 
 def GetSabUrl():
-    return 'http://' + Prefs['sabHost'] + ':' + Prefs['sabPort']
+    if Prefs['https']:
+        url =  'https://%s:%s' % (Prefs['sabHost'], Prefs['sabPort'])
+    else:
+        url =  'http://%s:%s' % (Prefs['sabHost'], Prefs['sabPort'])
+    Log(url)
+    return url
 
 ####################################################################################################
 
@@ -44,15 +49,28 @@ def GetSabApiUrl(mode):
     if Dict['sabApiKey']:
         return GetSabUrl() + '/api?mode=%s&apikey=%s' % (mode, Dict['sabApiKey'])
     else:
-        return GetSabUrl() + '/api?mode=%s' % (mode)
+        if ApiKey():
+            return GetSabUrl() + '/api?mode=%s&apikey=%s' % (mode, Dict['sabApiKey'])
+        else:
+            Log("Unable to build without API Key.")
+        
 
 ####################################################################################################
 
 def ApiKey():
     try:
-        apiKey = HTML.ElementFromURL(GetSabUrl() + '/config/general', headers=(AuthHeader())).xpath('//input[@id="apikey"]')[0].get('value')
-        return apiKey
+        Log(GetSabUrl())
+        url = GetSabUrl() + '/config/general'
+        Log(url)
+        headers = AuthHeader()
+        Log(headers)
+        configPage = HTML.ElementFromURL(url, headers=headers)
+        apiKey = configPage.xpath('//input[@id="apikey"]')[0].get('value')
+        Dict['sabApiKey'] = apiKey
+        Dict.Save()
+        return True
     except:
+        Log("Unable to retrieve API Key")
         return None
 
 ####################################################################################################
@@ -69,18 +87,18 @@ def ValidatePrefs():
 def MainMenu():
     dir = MediaContainer(noCache=True)
     
+    API_KEY = False
+    
     try:
-        if not Dict['sabApiKey']:
-            Dict['sabApiKey'] = ApiKey()
-        mode = 'queue&start=0&output=json'
-        test = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
-        if test['queue']:
-            new_user = False
+        if Dict['sabApiKey']:
+            API_KEY = True
+        else:
+            Log('No API Key saved.')
+            API_KEY = ApiKey()
     except:
-        new_user = True
-        Dict['sabApiKey'] = ApiKey()
+        API_KEY = ApiKey()
 
-    if new_user == False:
+    if API_KEY:
         dir.Append(Function(DirectoryItem(SabQueue, title='Queue', subtitle='View and make changes to the SABnzbd+ queue.',
             summary='View the queue. Change the order of queued donwloads, delete items from the queue.')))
         dir.Append(Function(DirectoryItem(SabHistory, title='History', subtitle='View SABnzbd\'s download history.',
