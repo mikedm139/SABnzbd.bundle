@@ -58,6 +58,11 @@ def ApiKey():
 ####################################################################################################
 
 def ValidatePrefs():
+    Log("User: %s " % Prefs['sabUser'])
+    Log("Pass: %s " % Prefs['sabPass'])
+    Log("IP: %s " % Prefs['sabHost'])
+    Log("Port: %s " % Prefs['sabPort'])
+    Log("API Key: %s " % ApiKey())
     return
 ####################################################################################################
     
@@ -87,6 +92,8 @@ def MainMenu():
                 summary = 'Choose a time period from the list and downloading will resume automatically')))
         else:
             dir.Append(Function(DirectoryItem(ResumeSab, title='Resume', subtitle='Resume downloading')))
+        
+        dir.Append(Function(PopupDirectoryItem(SpeedLimitPopup, title='Set Speed Limit', summary='Currently %skbps' % sabStatus['speedlimit'])))
 
         dir.Append(Function(DirectoryItem(RestartSab, title='Restart', subtitle='Restart SABnzbd+',
             summary='It may take a minute or two before SABnzbd+ is back online and functions are accessible.')))
@@ -177,6 +184,33 @@ def PauseSab(sender, pauseLength):
     Log(response)
 
     return MessageContainer(NAME, 'Downloading paused.')
+
+####################################################################################################
+
+def SpeedLimitPopup(sender):
+    dir = MediaContainer()
+    
+    defaultLimit = Prefs['speedlimit']
+    LIMITS = ['100','250','500','1000','1500','2500','3500']
+    
+    dir.Append(Function(DirectoryItem(SpeedLimit, title='Default: %skbps' % defaultLimit), speedlimit=defaultLimit))
+    dir.Append(Function(DirectoryItem(SpeedLimit, title='None'), speedlimit='0'))
+    for limit in LIMITS:
+        dir.Append(Function(DirectoryItem(SpeedLimit, title='%skbps' % limit), speedlimit=limit))
+    
+    return dir
+
+####################################################################################################
+
+def SpeedLimit(sender, speedlimit):
+
+    
+    mode = 'config&name=speedlimit&value=%s' % speedlimit
+    
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
+    Log(response)
+
+    return MessageContainer(NAME, 'Speedlimit set to %skpbs' % speedlimit)
 
 ####################################################################################################
 
