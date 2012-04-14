@@ -294,7 +294,7 @@ def PriorityMenu(sender, nzo_id):
 
 def ChangePriority(sender, nzo_id, priority):
 
-    mode = 'queue&name=priority&value=%s&value2=%d' % (nzo_id, priority)
+    mode = 'queue&name=priority&value=%s&value2=%s' % (nzo_id, priority)
     response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
