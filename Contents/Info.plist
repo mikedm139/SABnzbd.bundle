@@ -21,6 +21,6 @@
     <key>PlexPluginConsoleLogging</key>
     <string>1</string>
     <key>PlexClientPlatforms</key>
-    <string>MacOSX,iOS,Android,LGTV</string>
+    <string>*</string>
   </dict>
 </plist>
