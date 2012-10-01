@@ -447,6 +447,8 @@ def Search(sender, query):
 
 def ConfigureProviders(sender):
     ''' Allow users to add NZB providers and input API keys for them '''
+    dir = MediaContainer(title2=sender.itemTitle)
+    
     if not 'NZB_Providers' in Dict:
         Dict['NZB_Providers'] = {}
         for provider in NZB_PROVIDERS:
