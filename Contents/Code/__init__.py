@@ -8,6 +8,8 @@ NAME          = 'SABnzbd+'
 ART           = 'art-default.png'
 ICON          = 'icon-default.png'
 
+NZB_PROVIDERS = ['NZBMatrix']
+
 ####################################################################################################
 
 def Start():
@@ -108,9 +110,14 @@ def MainMenu():
             summary='It may take a minute or two before SABnzbd+ is back online and functions are accessible.')))
         dir.Append(Function(DirectoryItem(ShutdownSab, title='ShutDown', subtitle='Shut down SABnzbd+',
             summary='If you shut down SABnzbd+, you will have to exit Plex to restart it manually.')))
+            
+        #dir.Append(Function(InputDirectoryItem(Search, title='NZB Search', thumb=S('Search.png'))))
+        dir.Append(Function(DirectoryItem(ConfigureProviders, title='Configure NZB providers',
+            summary='Add/Rmove NZB providers and input API keys for your provider(s).')))
 
     dir.Append(PrefsItem(title='Preferences', subtitle='For SABnzbd+ plug-in',
         summary='Set plug-in preferences to allow proper communication with SABnzbd+', thumb=R('icon-prefs.png')))
+        
     return dir
 
 ####################################################################################################  
@@ -429,4 +436,27 @@ def ClearHistory(sender):
 
     return MessageContainer(NAME, 'All items cleared from history.')
 
+####################################################################################################
+
+def Search(sender, query):
+    ''' Execute a search of all configured providers and return the list of results '''
+    ### TODO ###
+    return
+
+####################################################################################################
+
+def ConfigureProviders(sender):
+    ''' Allow users to add NZB providers and input API keys for them '''
+    if not 'NZB_Providers' in Dict:
+        Dict['NZB_Providers'] = {}
+        for provider in NZB_PROVIDERS:
+            Dict['NZB_Providers'][provider] = {'name':provider, 'api_key':'', 'enabled':False}
+    else:
+        pass
+    
+    for provider in Dict['NZB_Providers']:
+        dir.Append(Function(DirectoryObject(ConfigureSource, title=provider['name'],
+            summary='Enabled: %s\nAPI Key: %s' % (provider['enabled'], provider['api_key']), provider=provider['name'])))
+    
+    return dir
 ####################################################################################################
