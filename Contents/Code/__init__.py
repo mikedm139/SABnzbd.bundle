@@ -452,13 +452,13 @@ def ConfigureProviders(sender):
     if not 'NZB_Providers' in Dict:
         Dict['NZB_Providers'] = {}
         for provider in NZB_PROVIDERS:
-            Dict['NZB_Providers'][provider] = {'name':provider, 'api_key':'', 'enabled':False}
+            Dict['NZB_Providers'][provider] = {'name':provider, 'username':'', 'api_key':'', 'enabled':False}
     else:
         pass
     
     for provider in Dict['NZB_Providers']:
         dir.Append(Function(DirectoryObject(ConfigureSource, title=provider['name'],
-            summary='Enabled: %s\nAPI Key: %s' % (provider['enabled'], provider['api_key']), provider=provider['name'])))
+            summary='Enabled: %s\nUsername: %s\nAPI Key: %s' % (provider['enabled'], provider['username'], provider['api_key']), provider=provider['name'])))
     
     return dir
     
@@ -469,6 +469,7 @@ def ConfigureSource(sender, provider):
     source = Dict['NZB_PROVIDERS'][provider]
     dir = MediaContainer(title2=source['name'], noCache=True)
     
+    dir.Append(Function(InputDirectoryItem(ProviderUsername, title='Username: %s' % source['username'], summary='Enter or change the username for %s' % source['name']), provider=provider))
     dir.Append(Function(InputDirectoryItem(ProviderAPI, title='API Key: %s' % source['api_key'], summary='Enter or change the API key for %s' % source['name']), provider=provider))
     if source['enabled']:
         dir.Append(PopupDirectoryItem(Function(EnableProvider, title='Enabled: TRUE', summary='%s is currently enabled to return results from NZB searches and allow them to be added to your SABnzbd+ queue. Select this option to disable it.' % source['name']),
@@ -478,6 +479,14 @@ def ConfigureSource(sender, provider):
             provider=provider, enable=True))
             
     return dir
+    
+####################################################################################################
+
+def ProviderUsername(sender, query, provider):
+    ''' Take the given username and save it to the given NZB Provider '''
+    Dict['NZB_PROVIDERS'][provider]['username'] = query
+    Dict.Save()
+    return MessageContainer(provider, "Username saved as: %s" Dict['NZB_PROVIDERS'][provider]['username'])
     
 ####################################################################################################
 
