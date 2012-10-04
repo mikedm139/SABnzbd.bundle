@@ -4,8 +4,8 @@
 PROVIDER = 'NZBMatrix' 
 
 # URL used for API-based search #
-API_SEARCH_URL      =  'http://api.nzbmatrix.com/v1.1/search.php?search=%s&catid=%s&num=%s&username=%s&apikey=%s'
-                        # (query, category='', max_results='', user, api_key)
+API_SEARCH_URL      =  'http://api.nzbmatrix.com/v1.1/search.php?search=%s&catid=%s&num=%s&maxage=%s&username=%s&apikey=%s'
+                        # (query, category='', max_results='', max_age='', user, api_key)
 
 # URL used for API-based NZB downloads #
 API_DOWNLOAD_URL    =   'http://api.nzbmatrix.com/v1.1/download.php?id=%s&username=%s&apikey=%s'
@@ -19,7 +19,7 @@ MAX_AGE = ''        # Takes an integer (as a string)
 # NZB Categories #
 CATEGORIES = [] ### TODO:: figure out how to handle categories
 
-def Search(sender, user='', api_key='', query='', category=''): ###TODO:: What other global-type parameters should be added? ###
+def Search(query='', category=''): ###TODO:: What other global-type parameters should be added? ###
     '''
         should return a list of JSON objects with the following fields:
         {
@@ -32,14 +32,15 @@ def Search(sender, user='', api_key='', query='', category=''): ###TODO:: What o
         }
     '''
     
+    url = NZBMatrixURL(API_SEARCH_URL % (query, CATEGORIES[category], GetMaxResults(), GetMaxAge(), Dict['NZB_PROVIDERS'][PROVIDER]['username'], Dict['NZB_PROVIDERS'][PROVIDER]['api_key']))
     return
 
-def Add(sender, nzb_id, user='', api_key=''):
+def Add(nzb_id):
     ''' should return a URL for the NZB to be added which can then be passed via
         the SABnzbd API function "addurl" '''
     return
 
-def GetNZBDetails(sender, nzb_id, user='', api_key=''):
+def GetNZBDetails(nzb_id):
     ''' return a JSON object with as much detail about the NZB as possible '''
     return
 
@@ -52,6 +53,28 @@ def NZBMatrixURL(url):
     except:
         return url
 
+def GetMaxResults():
+    if PROVIDER in Dict:
+        try:
+            return Dict[PROVIDER]['max_results']
+        except:
+            return ''
+
+def GetMaxAge():
+    if PROVIDER in Dict:
+        try:
+            return Dict[PROVIDER]['max_age']
+        except:
+            return ''
+
+def ResultsToJSON(result_string):
+    ''' take the result string from NZBMatrix and convert it to valid JSON '''
+    step1 = result_string.replace(':', '":"')
+    step2 = step1.replace('|', '},{')
+    step3 = step2.replace(';', '","')
+    step4 = '[{"' + step3 + '}]'
+    return JSON.ObjectFromString(step4)
+
 ################################################################################
 ######## Add methods for setting provider-specific defaults below here #########
 ################################################################################
@@ -60,7 +83,7 @@ def SetDefaults(sender):
     ''' return a MediaContainer with a list of DirectoryItem function callbacks
      for setting defaults specific to this NZB Provider '''
     
-    if Dict.haskey(PROVIDER):
+    if PROVIDER in Dict:
         ''' check to see if defaults already exist for this provider '''
         pass
     else:
