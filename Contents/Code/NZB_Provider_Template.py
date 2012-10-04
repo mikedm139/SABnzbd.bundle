@@ -37,6 +37,15 @@ def GetNZBDetails(sender, nzb_id, user='', api_key=''):
 def SetDefaults(sender):
     ''' return a MediaContainer with a list of DirectoryItem function callbacks
      for setting defaults specific to this NZB Provider '''
+     
+    if Dict.haskey(PROVIDER):
+        ''' check to see if defaults already exist for this provider '''
+        pass
+    else:
+        ''' otherwise create a set of defaults settings '''
+        Dict[PROVIDER] = {}
+        ''' Add basic default settings here '''
+    
     dir = MediaContainer(title1=PROVIDER, title2="Set Defaults")
     
     return dir
