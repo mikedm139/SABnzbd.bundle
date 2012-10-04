@@ -68,3 +68,15 @@ def SetDefaults(sender):
     dir.Append(Function(InputDirectoryObject(MaxAge, title="Maximum age of results to return: %s days" % Dict[PROVIDER]['max_age'])))
     
     return dir
+    
+def UseHTTPS(sender, https):
+    Dict[PROVIDER]['use_https'] = https
+    return MessageContainer(PROVIDER, "Use SSL Encryption set to %s" % Dict[PROVIDER]['use_https'])
+    
+def MaxResults(sender, max_results):
+    Dict[PROVIDER]['max_results'] = max_results
+    return MessageContainer(PROVIDER, "Max results set to %s" % Dict[PROVIDER]['max_results'])
+    
+def MaxAge(sender, max_age):
+    Dict[PROVIDER]['max_age'] = max_age
+    return MessageContainer(PROVIDER, "Max age set to %s" % Dict[PROVIDER]['max_age'])
