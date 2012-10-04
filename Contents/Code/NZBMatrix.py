@@ -35,10 +35,22 @@ def Search(sender, user='', api_key='', query='', category=''): ###TODO:: What o
     return
 
 def Add(sender, nzb_id, user='', api_key=''):
+    ''' should return a URL for the NZB to be added which can then be passed via
+        the SABnzbd API function "addurl" '''
     return
 
 def GetNZBDetails(sender, nzb_id, user='', api_key=''):
+    ''' return a JSON object with as much detail about the NZB as possible '''
     return
+
+def NZBMatrixURL(url):
+    try:
+        if Dict[PROVIDER]['use_https']:
+            return url.replace('http://', 'https://')
+        else:
+            return url
+    except:
+        return url
 
 ################################################################################
 ######## Add methods for setting provider-specific defaults below here #########
