@@ -33,12 +33,13 @@ def Search(query='', category=''): ###TODO:: What other global-type parameters s
     '''
     
     url = NZBMatrixURL(API_SEARCH_URL % (query, CATEGORIES[category], GetMaxResults(), GetMaxAge(), Dict['NZB_PROVIDERS'][PROVIDER]['username'], Dict['NZB_PROVIDERS'][PROVIDER]['api_key']))
+    search_results = 
     return
 
 def Add(nzb_id):
     ''' should return a URL for the NZB to be added which can then be passed via
         the SABnzbd API function "addurl" '''
-    add_url = API_DOWNLOAD_URL % (nzb_id, Dict['NZB_PROVIDERS'][PROVIDER]['username'], Dict['NZB_PROVIDERS'][PROVIDER]['api_key'])
+    add_url = NZBMatrixURL(API_DOWNLOAD_URL % (nzb_id, Dict['NZB_PROVIDERS'][PROVIDER]['username'], Dict['NZB_PROVIDERS'][PROVIDER]['api_key']))
     return add_url
 
 def GetNZBDetails(nzb_id):
@@ -68,13 +69,17 @@ def GetMaxAge():
         except:
             return ''
 
-def ResultsToJSON(result_string):
-    ''' take the result string from NZBMatrix and convert it to valid JSON '''
+def ResultsAsJSON(request_url):
+    ''' make the http request and convert the result string to valid JSON '''
+    result_string = HTTP.Request(request_url).content
     step1 = result_string.replace(':', '":"')
     step2 = step1.replace('|', '},{')
     step3 = step2.replace(';', '","')
     step4 = '[{"' + step3 + '}]'
-    return JSON.ObjectFromString(step4)
+    json_response = JSON.ObjectFromString(step4)
+    if 'error' in json_response:
+        Log("ERROR: %s" % json_response['error'])
+    return json_response
 
 ################################################################################
 ######## Add methods for setting provider-specific defaults below here #########
