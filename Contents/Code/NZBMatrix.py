@@ -28,13 +28,39 @@ def Search(query='', category=''): ###TODO:: What other global-type parameters s
             "provider"  :   "same as the filename (without '.py')",
             "summary"   :   "Build a summary string with as much detail as can
                                 be gathered just from the search response.",
-            "thumb:     :   "an image URL is available"
+            "thumb:     :   "an image URL if available"
         }
     '''
     
     url = NZBMatrixURL(API_SEARCH_URL % (query, CATEGORIES[category], GetMaxResults(), GetMaxAge(), Dict['NZB_PROVIDERS'][PROVIDER]['username'], Dict['NZB_PROVIDERS'][PROVIDER]['api_key']))
-    search_results = 
-    return
+    search_results = ResultsAsJSON(url)
+    result_list = []
+    for item in search_results:
+        try:
+            title = item['NZBNAME']
+            nzb_id = item['NZBID']
+            thumb = item['IMAGE']
+            if thumb == '':
+                thumb = 'http://NO_IMAGE.jpg'
+            summary = BuildSummary(item)
+            result_object = {
+                'title'     :   title,
+                'nzb_id'    :   nzb_id,
+                'summary'   :   summary,
+                'thumb'     :   thumb
+                }
+            result_list.append(result_object)
+        except:
+            Log('Skipping item with unparseable details')
+
+    return result_list
+
+def BuildSummary(nzb_details):
+    ''' build a string with as much details about the given nzb as possible '''
+    summary_string = "Size: %sMB \n" % ((float(nzb_details['SIZE'])/1024)/1024)
+    summary_string = summary_string + "Index Date: %s \n" % nzb_details['INDEX_DATE']
+    summary_string = summary_string + "Category: %s" % nzb_details['CATEGORY']
+    return summary_string
 
 def Add(nzb_id):
     ''' should return a URL for the NZB to be added which can then be passed via
