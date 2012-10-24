@@ -19,13 +19,16 @@ def Search(sender, query=''): ###TODO:: What other global-type parameters should
             "provider"  :   "same as the filename (without '.py')",
             "summary"   :   "Build a summary string with as much detail as can
                                 be gathered just from the search response.",
-            "thumb:     :   "an image URL is available",
-            "size"      :   "(optional?) filesize as string",
-            "index_date":   "(optional?) nzb index date as string"
+            "thumb:     :   "an image URL is available"
         }
     '''
-        
-    return
+    result_list = []    
+    return result_list
+
+def BuildSummary(nzb_details):
+    ''' build a string with as much details about the given nzb as possible '''
+    summary_string = ''
+    return summary_string
 
 def Add(sender, nzb_id):
     ''' should return a URL for the NZB to be added which can then be passed via
