@@ -19,7 +19,9 @@ def Search(sender, query=''): ###TODO:: What other global-type parameters should
             "provider"  :   "same as the filename (without '.py')",
             "summary"   :   "Build a summary string with as much detail as can
                                 be gathered just from the search response.",
-            "thumb:     :   "an image URL is available"
+            "thumb:     :   "an image URL is available",
+            "size"      :   "(optional?) filesize as string",
+            "index_date":   "(optional?) nzb index date as string"
         }
     '''
         
