@@ -447,6 +447,22 @@ def Search(sender, query):
 
 ####################################################################################################
 
+def AddNZB(sender, nzb_id, provider):
+    add_mode = 'addurl&name=%s'
+    if provider == 'NZBMatrix':
+        add_url = NZBMatrix.Add(nzb_id)
+    else:
+        return MessageContainer("Provider not recognized", "Please verify provider configurations")
+    
+    mode = add_mode % add_url
+    
+    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
+    Log(response)
+    
+    return MessageContainer(NAME, 'NZB added to queue')
+
+####################################################################################################
+
 def ConfigureProviders(sender):
     ''' Allow users to manage NZB providers and input API keys for them '''
     dir = MediaContainer(title2=sender.itemTitle)
