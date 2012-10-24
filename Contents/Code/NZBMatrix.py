@@ -38,7 +38,8 @@ def Search(query='', category=''): ###TODO:: What other global-type parameters s
 def Add(nzb_id):
     ''' should return a URL for the NZB to be added which can then be passed via
         the SABnzbd API function "addurl" '''
-    return
+    add_url = API_DOWNLOAD_URL % (nzb_id, Dict['NZB_PROVIDERS'][PROVIDER]['username'], Dict['NZB_PROVIDERS'][PROVIDER]['api_key'])
+    return add_url
 
 def GetNZBDetails(nzb_id):
     ''' return a JSON object with as much detail about the NZB as possible '''
