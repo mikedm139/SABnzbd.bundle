@@ -440,10 +440,36 @@ def ClearHistory(sender):
 
 ####################################################################################################
 
+@parallelize
 def Search(sender, query):
     ''' Execute a search of all configured providers and return the list of results '''
-    ### TODO ###
-    return
+    dir = MediaContainer(title2="Search Results")
+    
+    for num in range(len(NZB_PROVIDERS)):
+        @task
+        def ProviderSearch(query, num):
+            provider = NZB_PROVIDERS[num]
+            if Dict['NZB_PROVIDERS'][provider]['enabled']:
+                results = GetSearchResults(query, provider)
+                for result in results:
+                    dir.Append(Function(DirectoryItem(AddNZB, title=result['title'], summary=result['summary'],
+                        thumb=Resource.ContentsOfURLWithFallback(url=result['thumb'], fallback=ICON)),
+                        nzb_id=result['nzb_id'], provider=result['provider']))
+            else:
+                pass
+    
+    return dir
+
+####################################################################################################
+
+def GetSearchResults(query, provider):
+    ''' loop through the available providers and execute the search method of the given provider '''
+    if provider == 'NZBMatrix':
+        search_results = NZBMatrix.Search(query)
+    else: ###ADD ELIF Clauses as more providers are added###
+        search_results = []
+    
+    return search_results
 
 ####################################################################################################
 
