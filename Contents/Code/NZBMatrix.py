@@ -70,6 +70,8 @@ def Add(nzb_id):
 
 def GetNZBDetails(nzb_id):
     ''' return a JSON object with as much detail about the NZB as possible '''
+    ### Not sure if this is necessary... NZBMatrix seems to return the same data
+    ### for details requests as it does for search results... Ignoring it for now
     return
 
 def NZBMatrixURL(url):
