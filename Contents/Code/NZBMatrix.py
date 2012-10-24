@@ -99,8 +99,10 @@ def SetDefaults(sender):
         dir.Append(Function(DirectoryObject(UseHTTPS, title="Use SSL Encryption: TRUE"), https=False))
     else:
         dir.Append(Function(DirectoryObject(UseHTTPS, title="Use SSL Encryption: FALSE"), https=True))
-    dir.Append(Function(InputDirectoryObject(MaxResults, title="Maximum # of results to return: %s" % Dict[PROVIDER]['max_results'])))
-    dir.Append(Function(InputDirectoryObject(MaxAge, title="Maximum age of results to return: %s days" % Dict[PROVIDER]['max_age'])))
+    dir.Append(Function(InputDirectoryObject(MaxResults, title="Maximum # of results to return: %s" % Dict[PROVIDER]['max_results'],
+        prompt="Set max number of search results to:")))
+    dir.Append(Function(InputDirectoryObject(MaxAge, title="Maximum age of results to return: %s days" % Dict[PROVIDER]['max_age'],
+        prompt="Set max age (in days) of search results to:")))
     
     return dir
     
