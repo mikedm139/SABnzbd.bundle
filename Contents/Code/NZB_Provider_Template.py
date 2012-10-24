@@ -10,7 +10,7 @@ API_SEARCH_URL      =   ''
 API_DOWNLOAD_URL    =   ''
 
 
-def Search(sender, user='', api_key='', query=''): ###TODO:: What other global-type parameters should be added? ###
+def Search(sender, query=''): ###TODO:: What other global-type parameters should be added? ###
     '''
         should return a list of JSON objects with the following fields:
         {
@@ -25,12 +25,12 @@ def Search(sender, user='', api_key='', query=''): ###TODO:: What other global-t
         
     return
 
-def Add(sender, nzb_id, user='', api_key=''):
+def Add(sender, nzb_id):
     ''' should return a URL for the NZB to be added which can then be passed via
         the SABnzbd API function "addurl" '''
     return
 
-def GetNZBDetails(sender, nzb_id, user='', api_key=''):
+def GetNZBDetails(sender, nzb_id):
     ''' return a JSON object with as much detail about the NZB as possible '''
     return
 
