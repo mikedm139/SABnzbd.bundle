@@ -113,7 +113,8 @@ def MainMenu():
         dir.Append(Function(DirectoryItem(ShutdownSab, title='ShutDown', subtitle='Shut down SABnzbd+',
             summary='If you shut down SABnzbd+, you will have to exit Plex to restart it manually.')))
             
-        #dir.Append(Function(InputDirectoryItem(Search, title='NZB Search', thumb=S('Search.png'))))
+        dir.Append(Function(InputDirectoryItem(Search, title='NZB Search', summary='Search configured NZB providers for NZBs',
+            prompt='Search for...', thumb=R('Search.png'))))
         dir.Append(Function(DirectoryItem(ConfigureProviders, title='Configure NZB providers',
             summary='Add/Rmove NZB providers and input API keys for your provider(s).')))
 
@@ -440,23 +441,24 @@ def ClearHistory(sender):
 
 ####################################################################################################
 
-@parallelize
 def Search(sender, query):
     ''' Execute a search of all configured providers and return the list of results '''
     dir = MediaContainer(title2="Search Results")
-    
-    for num in range(len(NZB_PROVIDERS)):
-        @task
-        def ProviderSearch(query, num):
-            provider = NZB_PROVIDERS[num]
-            if Dict['NZB_PROVIDERS'][provider]['enabled']:
-                results = GetSearchResults(query, provider)
-                for result in results:
-                    dir.Append(Function(DirectoryItem(AddNZB, title=result['title'], summary=result['summary'],
-                        thumb=Resource.ContentsOfURLWithFallback(url=result['thumb'], fallback=ICON)),
-                        nzb_id=result['nzb_id'], provider=result['provider']))
-            else:
-                pass
+
+    @parallelize
+    def ExecuteSearch(query):
+        for num in range(len(NZB_PROVIDERS)):
+            @task
+            def ProviderSearch(query, num):
+                provider = NZB_PROVIDERS[num]
+                if Dict['NZB_PROVIDERS'][provider]['enabled']:
+                    results = GetSearchResults(query, provider)
+                    for result in results:
+                        dir.Append(Function(DirectoryItem(AddNZB, title=result['title'], summary=result['summary'],
+                            thumb=Resource.ContentsOfURLWithFallback(url=result['thumb'], fallback=ICON)),
+                            nzb_id=result['nzb_id'], provider=result['provider']))
+                else:
+                    pass
     
     return dir
 
@@ -501,8 +503,9 @@ def ConfigureProviders(sender):
         pass
     
     for provider in Dict['NZB_Providers']:
-        dir.Append(Function(DirectoryObject(ConfigureSource, title=provider['name'],
-            summary='Enabled: %s\nUsername: %s\nAPI Key: %s' % (provider['enabled'], provider['username'], provider['api_key']), provider=provider['name'])))
+        dir.Append(Function(DirectoryItem(ConfigureSource, title=Dict['NZB_Providers'][provider]['name'],
+            summary='Enabled: %s\nUsername: %s\nAPI Key: %s' % (Dict['NZB_Providers'][provider]['enabled'], Dict['NZB_Providers'][provider]['username'], Dict['NZB_Providers'][provider]['api_key'])),
+            provider=provider))
     
     return dir
     
@@ -510,16 +513,17 @@ def ConfigureProviders(sender):
 
 def ConfigureSource(sender, provider):
     ''' Allow users to enable/disable the given NZB Provider and enter/change the API Key '''
-    source = Dict['NZB_PROVIDERS'][provider]
+    source = Dict['NZB_Providers'][provider]
+    Log(source)
     dir = MediaContainer(title2=source['name'], noCache=True)
     
-    dir.Append(Function(InputDirectoryItem(ProviderUsername, title='Username: %s' % source['username'], summary='Enter or change the username for %s' % source['name']), provider=provider))
-    dir.Append(Function(InputDirectoryItem(ProviderAPI, title='API Key: %s' % source['api_key'], summary='Enter or change the API key for %s' % source['name']), provider=provider))
+    dir.Append(Function(InputDirectoryItem(ProviderUsername, title='Username: %s' % source['username'], summary='Enter or change the username for %s' % source['name'], prompt='Username'), provider=provider))
+    dir.Append(Function(InputDirectoryItem(ProviderAPI, title='API Key: %s' % source['api_key'], summary='Enter or change the API key for %s' % source['name'], prompt='API Key'), provider=provider))
     if source['enabled']:
-        dir.Append(PopupDirectoryItem(Function(EnableProvider, title='Enabled: TRUE', summary='%s is currently enabled to return results from NZB searches and allow them to be added to your SABnzbd+ queue. Select this option to disable it.' % source['name']),
+        dir.Append(Function(DirectoryItem(EnableProvider, title='Enabled: TRUE', summary='%s is currently enabled to return results from NZB searches and allow them to be added to your SABnzbd+ queue. Select this option to disable it.' % source['name']),
             provider=provider, enable=False))
     else:
-        dir.Append(Function(PopupDirectoryItem(EnableProvider, title='Enabled: FALSE', summary='%s is currently NOT enabled to return results from NZB searches and allow them to be added to your SABnzbd+ queue. Select this option to enable it.' % source['name']),
+        dir.Append(Function(DirectoryItem(EnableProvider, title='Enabled: FALSE', summary='%s is currently NOT enabled to return results from NZB searches and allow them to be added to your SABnzbd+ queue. Select this option to enable it.' % source['name']),
             provider=provider, enable=True))
             
     return dir
@@ -528,24 +532,24 @@ def ConfigureSource(sender, provider):
 
 def ProviderUsername(sender, query, provider):
     ''' Take the given username and save it to the given NZB Provider '''
-    Dict['NZB_PROVIDERS'][provider]['username'] = query
+    Dict['NZB_Providers'][provider]['username'] = query
     Dict.Save()
-    return MessageContainer(provider, "Username saved as: %s" Dict['NZB_PROVIDERS'][provider]['username'])
+    return MessageContainer(provider, "Username saved as: %s" % Dict['NZB_Providers'][provider]['username'])
     
 ####################################################################################################
 
 def ProviderAPI(sender, query, provider):
     ''' Take the given API key and save it to the given NZB Provider '''
-    Dict['NZB_PROVIDERS'][provider]['api_key'] = query
+    Dict['NZB_Providers'][provider]['api_key'] = query
     Dict.Save()
-    return MessageContainer(provider, "API Key saved as: %s" Dict['NZB_PROVIDERS'][provider]['api_key'])
+    return MessageContainer(provider, "API Key saved as: %s" % Dict['NZB_Providers'][provider]['api_key'])
     
 ####################################################################################################
 
 def EnableProvider(sender, provider, enable):
     ''' Set the given provider to enabled/disabled as per request '''
-    Dict['NZB_PROVIDERS'][provider]['enabled'] = enable
+    Dict['NZB_Providers'][provider]['enabled'] = enable
     Dict.Save()
-    return MessageContainer(provider, 'Set "Enabled" to: %s' Dict['NZB_PROVIDERS'][provider]['enabled'])
+    return MessageContainer(provider, 'Set "Enabled" to: %s' % Dict['NZB_Providers'][provider]['enabled'])
     
 ####################################################################################################
