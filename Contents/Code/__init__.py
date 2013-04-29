@@ -2,7 +2,7 @@ from base64 import b64encode
 
 ####################################################################################################
 
-APPLICATIONS_PREFIX = '/applications/sabnzbd'
+PREFIX = '/applications/sabnzbd'
 
 NAME          = 'SABnzbd+'
 ART           = 'art-default.png'
@@ -11,20 +11,20 @@ ICON          = 'icon-default.png'
 ####################################################################################################
 
 def Start():
-    Plugin.AddPrefixHandler(APPLICATIONS_PREFIX, MainMenu, NAME, ICON, ART)
+    Plugin.AddPrefixHandler(PREFIX, MainMenu, NAME, ICON, ART)
     Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
-    MediaContainer.art = R(ART)
-    MediaContainer.title1 = NAME
-    MediaContainer.viewGroup = 'InfoList'
+    ObjectContainer.art = R(ART)
+    ObjectContainer.title1 = NAME
+    ObjectContainer.view_group = 'InfoList'
 
-    DirectoryItem.thumb = R(ICON)
-    PopupDirectoryItem.thumb = R(ICON)
+    DirectoryObject.thumb = R(ICON)
+    PopupDirectoryObject.thumb = R(ICON)
 
     HTTP.CacheTime = 1
     
 ####################################################################################################
-
+@route(PREFIX + '/auth')
 def AuthHeader():
     header = {}
 
@@ -34,7 +34,7 @@ def AuthHeader():
     return header
 
 ####################################################################################################
-
+@route(PREFIX + '/saburl')
 def GetSabUrl():
     if Prefs['https']:
         url =  'https://%s:%s' % (Prefs['sabHost'], Prefs['sabPort'])
@@ -43,7 +43,7 @@ def GetSabUrl():
     return url
 
 ####################################################################################################
-
+@route(PREFIX +'/apiurl')
 def GetSabApiUrl(mode):
     if Dict['sabApiKey']:
         return GetSabUrl() + '/api?mode=%s&apikey=%s' % (mode, Dict['sabApiKey'])
@@ -55,7 +55,7 @@ def GetSabApiUrl(mode):
         
 
 ####################################################################################################
-
+@route(PREFIX + '/apikey')
 def ApiKey():
     try:
         url = GetSabUrl() + '/config/general'
@@ -70,13 +70,20 @@ def ApiKey():
         return None
 
 ####################################################################################################
-
+@route(PREFIX + '/apirequest')
+def ApiRequest(mode):
+    data = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
+    return data
+    
+####################################################################################################
+@route(PREFIX + '/validateprefs')
 def ValidatePrefs():
     return
+
 ####################################################################################################
-    
+@handler(PREFIX, NAME, ART, ICON)
 def MainMenu():
-    dir = MediaContainer(noCache=True)
+    oc = ObjectContainer(noCache=True)
     
     API_KEY = False
     
@@ -90,49 +97,52 @@ def MainMenu():
         API_KEY = ApiKey()
 
     if API_KEY:
-        dir.Append(Function(DirectoryItem(SabQueue, title='Queue', subtitle='View and make changes to the SABnzbd+ queue.',
-            summary='View the queue. Change the order of queued donwloads, delete items from the queue.')))
-        dir.Append(Function(DirectoryItem(SabHistory, title='History', subtitle='View SABnzbd\'s download history.',
-            summary='Number of items to display is set in preferences.')))
+        oc.add(DirectoryObject(key=Callback(SabQueue), title='Queue', subtitle='View and make changes to the SABnzbd+ queue.',
+            summary='View the queue. Change the order of queued donwloads, delete items from the queue.'))
+        oc.add(DirectoryObject(key=Callback(SabHistory), title='History', subtitle='View SABnzbd\'s download history.',
+            summary='Number of items to display is set in preferences.'))
 
-        sabStatus = GetQueue()
+        sabStatus = ApiRequest(mode='queue&start=0&output=json')['queue']
         if sabStatus['paused'] != True:
-            dir.Append(Function(PopupDirectoryItem(PauseMenu, title='Pause', subtitle='Pause downloading for a specified time period.',
-                summary = 'Choose a time period from the list and downloading will resume automatically')))
+            oc.add(PopupDirectoryObject(key=Callback(PauseMenu), title='Pause', subtitle='Pause downloading for a specified time period.',
+                summary = 'Choose a time period from the list and downloading will resume automatically'))
         else:
-            dir.Append(Function(DirectoryItem(ResumeSab, title='Resume', subtitle='Resume downloading')))
+            oc.add(PopupDirectoryObject(key=Callback(ResumeSab), title='Resume', subtitle='Resume downloading'))
         
-        dir.Append(Function(PopupDirectoryItem(SpeedLimitPopup, title='Set Speed Limit', summary='Currently %skbps' % sabStatus['speedlimit'])))
+        oc.add(PopupDirectoryObject(key=Callback(SpeedLimitPopup), title='Set Speed Limit',
+            summary='Currently %skbps' % sabStatus['speedlimit']))
+    
+        oc.add(DirectoryObject(key=Callback(RestartSab), title='Restart', subtitle='Restart SABnzbd+',
+            summary='It may take a minute or two before SABnzbd+ is back online and functions are accessible.'))
+        oc.add(DirectoryObject(key=Callback(ShutdownSab), title='ShutDown', subtitle='Shut down SABnzbd+',
+            summary='If you shut down SABnzbd+, you will have to exit Plex to restart it manually.'))
 
-        dir.Append(Function(DirectoryItem(RestartSab, title='Restart', subtitle='Restart SABnzbd+',
-            summary='It may take a minute or two before SABnzbd+ is back online and functions are accessible.')))
-        dir.Append(Function(DirectoryItem(ShutdownSab, title='ShutDown', subtitle='Shut down SABnzbd+',
-            summary='If you shut down SABnzbd+, you will have to exit Plex to restart it manually.')))
+    oc.add(PrefsObject(title='Plug-in Preferences', summary='Set plug-in preferences to allow proper communication with SABnzbd+',
+        thumb=R('icon-prefs.png')))
 
-    dir.Append(PrefsItem(title='Preferences', subtitle='For SABnzbd+ plug-in',
-        summary='Set plug-in preferences to allow proper communication with SABnzbd+', thumb=R('icon-prefs.png')))
-    return dir
+    return oc
 
 ####################################################################################################  
-
-def SabQueue(sender):
-    dir = MediaContainer(title2='Queue', noCache=True)
+@route(PREFIX +'/queue')
+def SabQueue():
+    oc = ObjectContainer(title2='Queue', noCache=True)
 
     try:
-        queue = GetQueue()
+        queue = ApiRequest(mode='queue&start=0&output=json')['queue']
 
         for item in queue['slots']:
-            dir.Append(Function(DirectoryItem(QueueMenu, title=item['filename'],
-                subtitle='Size: '+item['sizeleft']+'/'+item['size'], infoLabel=item['percentage']+'%',
-                summary='Category: '+str(item['cat'])+'\nPriority: '+item['priority']+'\nScript: '+item['script']+
-                '\nTimeLeft: '+item['timeleft']), nzo_id=item['nzo_id'], name=item['filename']))
+            oc.add(DirectoryObject(key=Callback(QueueMenu, nzo_id=item['nzo_id'], name=item['filename']),
+                title=item['filename'], summary = 'Completed: ' + item['percentage']+'%\n' + 
+                'Size: '+item['sizeleft']+'/'+item['size'] + '\n' + 'TimeLeft: ' + item['timeleft'] + '\n' + 
+                'Category: ' + str(item['cat']) + '\n' + 'Priority: ' + item['priority'] + '\n' +
+                'Script: ' + item['script'] +))
     except:
-        return MessageContainer(NAME, 'Error loading queue')
+        return ObjectContainer(header = NAME, message = 'Error loading queue')
     
-    if len(dir) == 0:
-        return MessageContainer(NAME, 'The queue is empty.')
+    if len(oc) == 0:
+        return ObjectContainer(header = NAME, message = 'The queue is empty.')
 
-    return dir
+    return oc
 
 ####################################################################################################
 
@@ -151,13 +161,6 @@ def SabHistory(sender):
         return MessageContainer(NAME, 'History is empty.')
 
     return dir
-
-####################################################################################################
-
-def GetQueue():
-    mode = 'queue&start=0&output=json'
-    queue = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
-    return queue['queue']
 
 ####################################################################################################
 
