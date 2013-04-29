@@ -72,7 +72,13 @@ def ApiKey():
 ####################################################################################################
 @route(PREFIX + '/apirequest')
 def ApiRequest(mode):
-    data = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
+    content = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
+    try:
+        data = JSON.ObjectFromString(content)
+    except:
+        #not all API calls return a JSON response so we'll just return the plain text for those
+        data = content
+        
     return data
     
 ####################################################################################################
