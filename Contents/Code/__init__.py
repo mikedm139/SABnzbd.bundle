@@ -163,21 +163,21 @@ def SabHistory():
     return oc
 
 ####################################################################################################
+@route(PREFIX + '/pausemenu')
+def PauseMenu():
+    oc = ObjectContainer()
 
-def PauseMenu(sender):
-    dir = MediaContainer()
+    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=0), title='Until I Resume'))
+    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=30), title='30 minutes'))
+    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=60), title='1 hour'))
+    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=90), title='1.5 hours'))
+    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=120), title='2 hours'))
+    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=180), title='3 hours'))
 
-    dir.Append(Function(DirectoryItem(PauseSab, title='Until I Resume'), pauseLength=0))
-    dir.Append(Function(DirectoryItem(PauseSab, title='30 minutes'), pauseLength=30))
-    dir.Append(Function(DirectoryItem(PauseSab, title='1 hour'), pauseLength=60))
-    dir.Append(Function(DirectoryItem(PauseSab, title='1.5 hours'), pauseLength=90))
-    dir.Append(Function(DirectoryItem(PauseSab, title='2 hours'), pauseLength=120))
-    dir.Append(Function(DirectoryItem(PauseSab, title='3 hours'), pauseLength=180))
-
-    return dir
+    return oc
 
 ####################################################################################################
-
+@route(PREFIX + '/pause')
 def PauseSab(sender, pauseLength):
 
     if pauseLength == 0:
@@ -185,10 +185,9 @@ def PauseSab(sender, pauseLength):
     else:
         mode = 'config&name=set_pause&value=%d' % pauseLength
 
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'Downloading paused.')
+    return ObjectContainer(header=NAME, message='Downloading paused.')
 
 ####################################################################################################
 
