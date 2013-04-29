@@ -137,37 +137,30 @@ def SabQueue():
                 'Category: ' + str(item['cat']) + '\n' + 'Priority: ' + item['priority'] + '\n' +
                 'Script: ' + item['script'] +))
     except:
-        return ObjectContainer(header = NAME, message = 'Error loading queue')
+        return ObjectContainer(header=NAME, message='Error loading queue')
     
     if len(oc) == 0:
-        return ObjectContainer(header = NAME, message = 'The queue is empty.')
+        return ObjectContainer(header=NAME, message='The queue is empty.')
 
     return oc
 
 ####################################################################################################
-
-def SabHistory(sender):
-    dir = MediaContainer(title2='History', noCache=True)
-    history = GetHistory()
+@route(PREFIX + '/history')
+def SabHistory():
+    oc = ObjectContainer(title2='History', noCache=True)
+    history = ApiRequest(mode='history&start=0&limit=%s&output=json' % (Prefs['historyItems']))['history']
 
     for item in history['slots']:
-        dir.Append(Function(PopupDirectoryItem(HistoryMenu, title=item['name'], subtitle='Size: '+item['size'],
-            infoLabel=item['status'], summary='Category: '+str(item['category'])+'\nScript: '+str(item['script'])+
-            '\nFilePath: '+str(item['storage'])+'\nTime to download: '+str(item['download_time']//3600)+' hours, '+
-            str((item['download_time']%3600)//60)+' minutes, '+str((item['download_time']%3600)%60)+' seconds.'),
-            nzo_id=item['nzo_id']))
+        oc.add(PopupDirectoryObject(key=Callback(HistoryMenu, nzo_id=item['nzo_id']), title=item['name'],
+            summary = 'Status: ' + item['status'] + '\n' + 'Size: '+item['size'] + '\n' +
+            'Category: ' + str(item['category']) + '\n' + 'Script: ' + str(item['script']) + '\n' +
+            'FilePath: ' + str(item['storage']) + '\n' + 'Time to download: ' + str(item['download_time']//3600) +
+            ' hours, ' + str((item['download_time']%3600)//60) + ' minutes, ' + str((item['download_time']%3600)%60) + ' seconds.'
 
-    if len(dir) == 0:
-        return MessageContainer(NAME, 'History is empty.')
+    if len(oc) == 0:
+        return ObjectContainer(header=NAME, message='History is empty.')
 
-    return dir
-
-####################################################################################################
-
-def GetHistory():
-    mode = 'history&start=0&limit=%s&output=json' % (Prefs['historyItems'])
-    history = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
-    return history['history']
+    return oc
 
 ####################################################################################################
 
