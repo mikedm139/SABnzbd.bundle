@@ -279,16 +279,16 @@ def QueueMenu(nzo_id, name):
     return oc
 
 ####################################################################################################
+@route(PREFIX + '/historymenu')
+def HistoryMenu(nzo_id):
 
-def HistoryMenu(sender, nzo_id):
+    oc = ObjectContainer()
 
-    dir = MediaContainer()
+    oc.add(DirectoryObject(key=Callback(RetryDownload, nzo_id=nzo_id), title='Retry'))
+    oc.add(DirectoryObject(key=Callback(DeleteFromHistory, nzo_id=nzo_id), title='Delete'))
+    oc.add(DirectoryObject(key=Callback(ClearHistory), title='Clear History'))
 
-    dir.Append(Function(DirectoryItem(RetryDownload, 'Retry'), nzo_id=nzo_id))
-    dir.Append(Function(DirectoryItem(DeleteFromHistory, 'Delete'), nzo_id=nzo_id))
-    dir.Append(Function(DirectoryItem(ClearHistory, 'Clear History')))
-
-    return dir
+    return oc
 
 ####################################################################################################
 
