@@ -355,14 +355,16 @@ def CategoryMenu(nzo_id):
     return oc
 
 ####################################################################################################
-
-def ChangeCategory(sender, nzo_id, category):
+@route(PREFIX + '/category')
+def ChangeCategory(nzo_id, category):
 
     mode = 'change_cat&value=%s&value2=%s' % (nzo_id, category)
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'Category changed for this item.')
+    if response == 'ok':
+        return MessageContainer(NAME, 'Category changed for this item.')
+    else:
+        return SabError()
 
 ####################################################################################################
 
