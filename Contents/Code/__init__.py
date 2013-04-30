@@ -330,13 +330,16 @@ def MoveItemPopup(nzo_id):
     return oc
 
 ####################################################################################################
-def MoveItem(sender, nzo_id, target): ### Currently non-functioning
-
+@route(PREFIX + '/move')
+def MoveItem(nzo_id, target):
+    
     mode = 'switch&value=%s&value2=%s' % (nzo_id, target)
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'Moving item to slot #%s' % query)
+    if response == 'ok':
+        return MessageContainer(NAME, 'Moving item to slot #%s' % query)
+    else:
+        return SabError()
 
 ####################################################################################################
 
