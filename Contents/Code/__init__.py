@@ -212,15 +212,15 @@ def SpeedLimitPopup():
 
 ####################################################################################################
 @route(PREFIX + '/speedlimit')
-def SpeedLimit(sender, speedlimit):
+def SpeedLimit(speedlimit):
 
     
     mode = 'config&name=speedlimit&value=%s' % speedlimit
     
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
+    ### Check the response... consider returning an indication of the response? ###
 
-    return MessageContainer(NAME, 'Speedlimit set to %skpbs' % speedlimit)
+    return ObjectContainer(header=NAME, message='Speedlimit set to %skpbs' % speedlimit)
 
 ####################################################################################################
 
