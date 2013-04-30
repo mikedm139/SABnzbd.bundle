@@ -303,14 +303,16 @@ def PriorityMenu(nzo_id):
     return oc
 
 ####################################################################################################
-
-def ChangePriority(sender, nzo_id, priority):
+@route(PREFIX + '/priority')
+def ChangePriority(nzo_id, priority):
 
     mode = 'queue&name=priority&value=%s&value2=%s' % (nzo_id, priority)
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'Item priority changed')
+    if response == 'ok':
+        return MessageContainer(NAME, 'Item priority changed')
+    else:
+        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/movepopup')
