@@ -405,7 +405,7 @@ def PostProcessingMenu(nzo_id):
     return oc
 
 ####################################################################################################
-@route(PREFIX + '/postprocess
+@route(PREFIX + '/postprocess')
 def ChangePostProcessing(nzo_id, process):
 
     mode = 'change_opts&value=%s&value2=%s' % (nzo_id, process)
@@ -417,14 +417,14 @@ def ChangePostProcessing(nzo_id, process):
         return SabError()
 
 ####################################################################################################
-
+@route(PREFIX + '/confirmdelete')
 def DeleteMenu(sender, nzo_id):
 
-    dir = MediaContainer(title2='Delete item?')
+    oc = ObjectContainer(title2='Delete item?')
 
-    dir.Append(Function(DirectoryItem(DeleteFromQueue, 'Delete item from Queue?'), nzo_id=nzo_id))
+    oc.add(DirectoryObject(key=Callback(DeleteFromQueue, nzo_id=nzo_id), title='Delete item from Queue?'))
 
-    return dir
+    return 
 
 ####################################################################################################
 
