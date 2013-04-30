@@ -291,16 +291,16 @@ def HistoryMenu(nzo_id):
     return oc
 
 ####################################################################################################
+@route(PREFIX + '/prioritymenu')
+def PriorityMenu(nzo_id):
 
-def PriorityMenu(sender, nzo_id):
+    oc = ObjectContainer(title2='Priority')
 
-    dir = MediaContainer(title2='Priority')
+    oc.add(DirectoryObject(key=Callback(ChangePriority, nzo_id=nzo_id, priority='1'), title='High'))
+    oc.add(DirectoryObject(key=Callback(ChangePriority, nzo_id=nzo_id, priority='0'), title='Normal'))
+    oc.add(DirectoryObject(key=Callback(ChangePriority, nzo_id=nzo_id, priority='-1'), title='Low'))
 
-    dir.Append(Function(DirectoryItem(ChangePriority, 'High'), nzo_id=nzo_id, priority='1'))
-    dir.Append(Function(DirectoryItem(ChangePriority, 'Normal'), nzo_id=nzo_id, priority='0'))
-    dir.Append(Function(DirectoryItem(ChangePriority, 'Low'), nzo_id=nzo_id, priority='-1'))
-
-    return dir
+    return oc
 
 ####################################################################################################
 
