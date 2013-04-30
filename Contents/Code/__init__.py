@@ -392,17 +392,17 @@ def ChangeScript(sender, nzo_id, script):
         return SabError()
     
 ####################################################################################################
+@route(PREFIX + '/postprocessing')
+def PostProcessingMenu(nzo_id):
 
-def PostProcessingMenu(sender, nzo_id):
+    oc = ObjectContainer(title2='Post-Processing')
 
-    dir = MediaContainer(title2='Post-Processing')
+    oc.add(DirectoryObject(key=Callback(ChangePostProcessing, nzo_id=nzo_id, process='0'), title='Skip'))
+    oc.add(DirectoryObject(key=Callback(ChangePostProcessing, nzo_id=nzo_id, process='1'), title='Repair'))
+    oc.add(DirectoryObject(key=Callback(ChangePostProcessing, nzo_id=nzo_id, process='2'), title='Repair/Unpack'))
+    oc.add(DirectoryObject(key=Callback(ChangePostProcessing, nzo_id=nzo_id, process='3'), title='Repair/Unpack/Delete'))
 
-    dir.Append(Function(DirectoryItem(ChangePostProcessing, 'Skip'), nzo_id=nzo_id, process='0'))
-    dir.Append(Function(DirectoryItem(ChangePostProcessing, 'Repair'), nzo_id=nzo_id, process='1'))
-    dir.Append(Function(DirectoryItem(ChangePostProcessing, 'Repair/Unpack'), nzo_id=nzo_id, process='2'))
-    dir.Append(Function(DirectoryItem(ChangePostProcessing, 'Repair/Unpack/Delete'), nzo_id=nzo_id, process='3'))
-
-    return dir
+    return oc
 
 ####################################################################################################
 
