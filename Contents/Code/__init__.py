@@ -405,14 +405,16 @@ def PostProcessingMenu(nzo_id):
     return oc
 
 ####################################################################################################
-
-def ChangePostProcessing(sender, nzo_id, process):
+@route(PREFIX + '/postprocess
+def ChangePostProcessing(nzo_id, process):
 
     mode = 'change_opts&value=%s&value2=%s' % (nzo_id, process)
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'Post-processung work-flow changed for this item.')
+    if response == 'ok':
+        return MessageContainer(NAME, 'Post-processung work-flow changed for this item.')
+    else:
+        return SabError()
 
 ####################################################################################################
 
