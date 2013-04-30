@@ -265,19 +265,18 @@ def ShutdownSab():
         return SabError()
 
 ####################################################################################################
+@route(PREFIX + '/queuemenu')
+def QueueMenu(nzo_id, name):
 
-def QueueMenu(sender, nzo_id, name):
+    oc = ObjectContainer(title2=name)
 
-    dir = MediaContainer(title2=name)
+    oc.add(PopupDirectoryObject(key=Callback(PriorityMenu, nzo_id=nzo_id), title='Change Priority'))
+    oc.add(PopupDirectoryObject(key=Callback(MoveItemMenu, nzo_id=nzo_id), title='Move item to new position in queue'))
+    oc.add(PopupDirectoryObject(key=Callback(CategoryMenu, nzo_id=nzo_id), title='Change Category'))
+    oc.add(PopupDirectoryObject(key=Callback(PostProcessingMenu, nzo_id=nzo_id), title='Change Post-Processing'))
+    oc.add(PopupDirectoryObject(key=Callback(DeleteMenu, nzo_id=nzo_id), title='Delete from Queue'))
 
-    dir.Append(Function(PopupDirectoryItem(PriorityMenu, 'Change Priority'), nzo_id=nzo_id))
-    #dir.Append(Function(InputDirectoryItem(MoveItem, 'Move item to new position in queue'), nzo_id=nzo_id))
-    dir.Append(Function(PopupDirectoryItem(CategoryMenu, 'Change Category'), nzo_id=nzo_id))
-    dir.Append(Function(PopupDirectoryItem(ScriptMenu, 'Change Script'), nzo_id=nzo_id))
-    dir.Append(Function(PopupDirectoryItem(PostProcessingMenu, 'Change Post-processing'), nzo_id=nzo_id))
-    dir.Append(Function(PopupDirectoryItem(DeleteMenu, 'Delete from Queue'), nzo_id=nzo_id))
-
-    return dir
+    return oc
 
 ####################################################################################################
 
@@ -314,10 +313,24 @@ def ChangePriority(sender, nzo_id, priority):
     return MessageContainer(NAME, 'Item priority changed')
 
 ####################################################################################################
+@route(PREFIX + '/movepopup')
+def MoveItemPopup(nzo_id):
+    
+    oc = ObjectContainer()
+    
+    queue = ApiRequest(mode='queue&start=0&output=json')['queue']
 
-def MoveItem(sender, query, nzo_id): ### Currently non-functioning
+    i = 0
+    
+    while i < len(queue['slots']):
+        oc.add(DirectoryObject(key=Callback(MoveItem, nzo_id=nzo_id, target=i), title='%s' % i))
+    
+    return oc
 
-    mode = 'switch&value=%s&value2=%s' % (nzo_id, query)
+####################################################################################################
+def MoveItem(sender, nzo_id, target): ### Currently non-functioning
+
+    mode = 'switch&value=%s&value2=%s' % (nzo_id, target)
     response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     Log(response)
 
