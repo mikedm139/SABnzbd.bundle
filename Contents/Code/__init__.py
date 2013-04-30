@@ -11,7 +11,6 @@ ICON          = 'icon-default.png'
 ####################################################################################################
 
 def Start():
-    Plugin.AddPrefixHandler(PREFIX, MainMenu, NAME, ICON, ART)
     Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
 
     ObjectContainer.art = R(ART)
@@ -184,7 +183,7 @@ def PauseMenu():
 
 ####################################################################################################
 @route(PREFIX + '/pause')
-def PauseSab(sender, pauseLength):
+def PauseSab(pauseLength):
 
     if pauseLength == 0:
         mode = 'pause'
@@ -192,6 +191,7 @@ def PauseSab(sender, pauseLength):
         mode = 'config&name=set_pause&value=%d' % pauseLength
 
     response = ApiRequest(mode=mode)
+    ### Check the response... consider returning an indication of the response? ###
 
     return ObjectContainer(header=NAME, message='Downloading paused.')
 
