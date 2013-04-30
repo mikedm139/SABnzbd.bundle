@@ -367,17 +367,17 @@ def ChangeCategory(nzo_id, category):
         return SabError()
 
 ####################################################################################################
+@route(PREFIX + '/scripts')
+def ScriptMenu(nzo_id):
 
-def ScriptMenu(sender, nzo_id):
-
-    dir = MediaContainer(title2='Scripts')
+    oc = ObjectContainer(title2='Scripts')
 
     mode = 'get_scripts&output=json'
-    scripts = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
+    scripts = ApiRequest(mode=mode)
     for script in scripts['scripts']:
-        dir.Append(Function(DirectoryItem(ChangeScript, title=script), nzo_id=nzo_id, script=script))
+        oc.add(DirectoryObject(key=Callback(ChangeScript, nzo_id=nzo_id, script=script), title=script))
 
-    return dir
+    return 
 
 ####################################################################################################
 
