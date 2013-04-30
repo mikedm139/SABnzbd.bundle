@@ -51,7 +51,6 @@ def GetSabApiUrl(mode):
             return GetSabUrl() + '/api?mode=%s&apikey=%s' % (mode, Dict['sabApiKey'])
         else:
             Log("Unable to build without API Key.")
-        
 
 ####################################################################################################
 @route(PREFIX + '/apikey')
@@ -84,6 +83,11 @@ def ApiRequest(mode):
 @route(PREFIX + '/validateprefs')
 def ValidatePrefs():
     return
+    
+####################################################################################################
+@route(PREFIX + '/error')
+def SabError():
+    return ObjectContainer(header=NAME, message='An error occurred. Your request did not succeed')
 
 ####################################################################################################
 @handler(PREFIX, NAME, ART, ICON)
@@ -191,9 +195,10 @@ def PauseSab(pauseLength):
         mode = 'config&name=set_pause&value=%d' % pauseLength
 
     response = ApiRequest(mode=mode)
-    ### Check the response... consider returning an indication of the response? ###
-
-    return ObjectContainer(header=NAME, message='Downloading paused.')
+    if response == 'ok':
+        return ObjectContainer(header=NAME, message='Downloading paused.')
+    else:
+        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/speedmenu')
@@ -218,39 +223,46 @@ def SpeedLimit(speedlimit):
     mode = 'config&name=speedlimit&value=%s' % speedlimit
     
     response = ApiRequest(mode=mode)
-    ### Check the response... consider returning an indication of the response? ###
-
-    return ObjectContainer(header=NAME, message='Speedlimit set to %skpbs' % speedlimit)
+    if response == 'ok':
+        return ObjectContainer(header=NAME, message='Speedlimit set to %skpbs' % speedlimit)
+    else:
+        return SabError()
 
 ####################################################################################################
-
-def ResumeSab(sender):
+@route(PREFIX + '/resume')
+def ResumeSab():
 
     mode = 'resume'
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'Downloading resumed.')
+    if response == 'ok':
+        return ObjectContainer(header=NAME, message='Downloading resumed.')
+    else:
+        return SabError()
 
 ####################################################################################################
-
-def RestartSab(sender):
+@route(PREFIX + '/restart')
+def RestartSab():
 
     mode = 'restart'
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
-
-    return MessageContainer(NAME, 'SABnzdb+ is restarting.')
+    response = ApiRequest(mode=mode)
+    
+    if response == 'ok':
+        return ObjectContainer(header=NAME, message='SABnzdb+ is restarting.')
+    else:
+        return SabError()
 
 ####################################################################################################
-
-def ShutdownSab(sender):
+@route(PREFIX + '/shutdown')
+def ShutdownSab():
 
     mode = 'shutdown'
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
-
-    return MessageContainer(NAME, 'SABnzdb+ shutting down.')
+    response = ApiRequest(mode=mode)
+    
+    if response == 'ok':
+        return MessageContainer(NAME, 'SABnzdb+ shutting down.')
+    else:
+        return SabError()
 
 ####################################################################################################
 
