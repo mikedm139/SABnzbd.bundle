@@ -201,7 +201,7 @@ def PauseSab(pauseLength):
         return SabError()
 
 ####################################################################################################
-@route(PREFIX + '/speedmenu')
+@route(PREFIX + '/speedlimits')
 def SpeedLimitPopup():
     oc = ObjectContainer()
     
@@ -291,7 +291,7 @@ def HistoryMenu(nzo_id):
     return oc
 
 ####################################################################################################
-@route(PREFIX + '/prioritymenu')
+@route(PREFIX + '/priorities')
 def PriorityMenu(nzo_id):
 
     oc = ObjectContainer(title2='Priority')
@@ -342,17 +342,17 @@ def MoveItem(nzo_id, target):
         return SabError()
 
 ####################################################################################################
+@route(PREFIX + '/categories')
+def CategoryMenu(nzo_id):
 
-def CategoryMenu(sender, nzo_id):
-
-    dir = MediaContainer(title2='Categories')
+    oc = ObjectContainer(title2='Categories')
 
     mode = 'get_cats&output=json'
-    categories = JSON.ObjectFromURL(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader())
+    categories = ApiRequest(mode=mode)
     for category in categories['categories']:
-        dir.Append(Function(DirectoryItem(ChangeCategory, title=category), nzo_id=nzo_id, category=category))
+        oc.add(DirectoryObject(key=Callback(ChangeCategory, nzo_id=nzo_id, category=category), title=category))
 
-    return dir
+    return oc
 
 ####################################################################################################
 
