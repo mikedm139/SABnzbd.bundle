@@ -377,17 +377,19 @@ def ScriptMenu(nzo_id):
     for script in scripts['scripts']:
         oc.add(DirectoryObject(key=Callback(ChangeScript, nzo_id=nzo_id, script=script), title=script))
 
-    return 
+    return oc
 
 ####################################################################################################
-
+@route(PREFIX + '/script')
 def ChangeScript(sender, nzo_id, script):
 
     mode = 'change_script&value=%s&value2=%s' % (nzo_id, script)
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'Post-processung script changed for this item.')
+    if response == 'ok':
+        return MessageContainer(NAME, 'Post-processung script changed for this item.')
+    else:
+        return SabError()
     
 ####################################################################################################
 
