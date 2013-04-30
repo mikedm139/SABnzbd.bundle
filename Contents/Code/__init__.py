@@ -196,22 +196,22 @@ def PauseSab(pauseLength):
     return ObjectContainer(header=NAME, message='Downloading paused.')
 
 ####################################################################################################
-
-def SpeedLimitPopup(sender):
-    dir = MediaContainer()
+@route(PREFIX + '/speedmenu')
+def SpeedLimitPopup():
+    oc = ObjectContainer()
     
     defaultLimit = Prefs['speedlimit']
     LIMITS = ['100','250','500','1000','1500','2500','3500']
     
-    dir.Append(Function(DirectoryItem(SpeedLimit, title='Default: %skbps' % defaultLimit), speedlimit=defaultLimit))
-    dir.Append(Function(DirectoryItem(SpeedLimit, title='None'), speedlimit='0'))
+    oc.add(DirectoryObject(key=Callback(SpeedLimit, speedlimit=defaultLimit), title='Default: %skbps' % defaultLimit))
+    oc.add(DirectoryObject(key=Callback(SpeedLimit, speedlimit='0'), title='None'))
     for limit in LIMITS:
-        dir.Append(Function(DirectoryItem(SpeedLimit, title='%skbps' % limit), speedlimit=limit))
+        oc.add(DirectoryObject(key=Callback(SpeedLimit, speedlimit=limit), title='%skbps' % limit))
     
-    return dir
+    return oc
 
 ####################################################################################################
-
+@route(PREFIX + '/speedlimit')
 def SpeedLimit(sender, speedlimit):
 
     
