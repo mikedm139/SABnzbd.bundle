@@ -69,13 +69,16 @@ def ApiKey():
 
 ####################################################################################################
 @route(PREFIX + '/apirequest')
-def ApiRequest(mode):
+def ApiRequest(mode, success_message=None):
     content = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     try:
         data = JSON.ObjectFromString(content)
     except:
         #not all API calls return a JSON response so we'll just return the plain text for those
-        data = content
+        if data == 'ok':
+            return ObjectContainer(header=NAME, message=success_message)
+        else:
+            return SabError()
         
     return data
     
@@ -172,33 +175,17 @@ def SabHistory():
     return oc
 
 ####################################################################################################
-@route(PREFIX + '/pausemenu')
+@route(PREFIX + '/pause')
 def PauseMenu():
     oc = ObjectContainer()
 
-    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=0), title='Until I Resume'))
-    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=30), title='30 minutes'))
-    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=60), title='1 hour'))
-    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=90), title='1.5 hours'))
-    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=120), title='2 hours'))
-    oc.add(DirectoryObject(key=Callback(PauseSab, pauseLength=180), title='3 hours'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='pause', success_message='Downloading paused until manually resumed.'),
+        title='Until I Resume'))
+    for pause_length in ['30','60','90','120','180']
+        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='config&name=set_pause&value=%d' % pause_length,
+            success_message='Downloading paused for %s minutes' % pause_length), title='%s minutes' % pause_length))
 
     return oc
-
-####################################################################################################
-@route(PREFIX + '/pause')
-def PauseSab(pauseLength):
-
-    if pauseLength == 0:
-        mode = 'pause'
-    else:
-        mode = 'config&name=set_pause&value=%d' % pauseLength
-
-    response = ApiRequest(mode=mode)
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='Downloading paused.')
-    else:
-        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/speedlimits')
@@ -464,12 +451,14 @@ def DeleteFromHistory(nzo_id):
 
 ####################################################################################################
 @route(PREFIX + '/clearhistory')
-def ClearHistory(sender):
+def ClearHistory():
 
     mode = 'history&name=delete&value=all'
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'All items cleared from history.')
+    if response == 'ok':
+        return ObjectContainer(header=NAME, message='All items cleared from history.')
+    else:
+        return SabError()
 
 ####################################################################################################
