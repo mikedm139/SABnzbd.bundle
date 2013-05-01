@@ -439,14 +439,16 @@ def DeleteFromQueue(nzo_id):
         return SabError()
 
 ####################################################################################################
-
-def RetryDownload(sender, nzo_id):
+@route(PREFIX + '/retry')
+def RetryDownload(nzo_id):
 
     mode = 'retry&value=%s' % nzo_id
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'Item re-added to queue.')
+    if response == 'ok':
+        return ObjectContainer(header=NAME, message='Item re-added to queue.')
+    else:
+        return SabError()
 
 ####################################################################################################
 
