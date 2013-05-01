@@ -463,7 +463,7 @@ def DeleteFromHistory(nzo_id):
         return SabError()
 
 ####################################################################################################
-
+@route(PREFIX + '/clearhistory')
 def ClearHistory(sender):
 
     mode = 'history&name=delete&value=all'
