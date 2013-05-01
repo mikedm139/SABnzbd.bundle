@@ -260,7 +260,7 @@ def ShutdownSab():
     response = ApiRequest(mode=mode)
     
     if response == 'ok':
-        return MessageContainer(NAME, 'SABnzdb+ shutting down.')
+        return ObjectContainer(header=NAME, message='SABnzdb+ shutting down.')
     else:
         return SabError()
 
@@ -310,7 +310,7 @@ def ChangePriority(nzo_id, priority):
     response = ApiRequest(mode=mode)
 
     if response == 'ok':
-        return MessageContainer(NAME, 'Item priority changed')
+        return ObjectContainer(header=NAME, message='Item priority changed')
     else:
         return SabError()
 
@@ -337,7 +337,7 @@ def MoveItem(nzo_id, target):
     response = ApiRequest(mode=mode)
 
     if response == 'ok':
-        return MessageContainer(NAME, 'Moving item to slot #%s' % query)
+        return ObjectContainer(header=NAME, message='Moving item to slot #%s' % query)
     else:
         return SabError()
 
@@ -362,7 +362,7 @@ def ChangeCategory(nzo_id, category):
     response = ApiRequest(mode=mode)
 
     if response == 'ok':
-        return MessageContainer(NAME, 'Category changed for this item.')
+        return ObjectContainer(header=NAME, message='Category changed for this item.')
     else:
         return SabError()
 
@@ -387,7 +387,7 @@ def ChangeScript(sender, nzo_id, script):
     response = ApiRequest(mode=mode)
 
     if response == 'ok':
-        return MessageContainer(NAME, 'Post-processung script changed for this item.')
+        return ObjectContainer(header=NAME, message='Post-processung script changed for this item.')
     else:
         return SabError()
     
@@ -412,7 +412,7 @@ def ChangePostProcessing(nzo_id, process):
     response = ApiRequest(mode=mode)
 
     if response == 'ok':
-        return MessageContainer(NAME, 'Post-processung work-flow changed for this item.')
+        return ObjectContainer(header=NAME, message='Post-processung work-flow changed for this item.')
     else:
         return SabError()
 
@@ -427,14 +427,16 @@ def DeleteMenu(sender, nzo_id):
     return 
 
 ####################################################################################################
-
-def DeleteFromQueue(sender, nzo_id):
+@route(PREFIX + '/delete')
+def DeleteFromQueue(nzo_id):
 
     mode = 'queue&name=delete&value=%s' % nzo_id
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'Deleting item from queue.')
+    if response == 'ok':
+        return ObjectContainer(header=NAME, message='Deleting item from queue.')
+    else:
+        return SabError()
 
 ####################################################################################################
 
