@@ -427,7 +427,7 @@ def DeleteMenu(sender, nzo_id):
     return 
 
 ####################################################################################################
-@route(PREFIX + '/delete')
+@route(PREFIX + '/queuedelete')
 def DeleteFromQueue(nzo_id):
 
     mode = 'queue&name=delete&value=%s' % nzo_id
@@ -451,14 +451,16 @@ def RetryDownload(nzo_id):
         return SabError()
 
 ####################################################################################################
-
-def DeleteFromHistory(sender, nzo_id):
+@route(PREFIX + '/historydelete')
+def DeleteFromHistory(nzo_id):
 
     mode = 'history&name=delete&value=%s' % nzo_id
-    response = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
-    Log(response)
+    response = ApiRequest(mode=mode)
 
-    return MessageContainer(NAME, 'Item deleted from history.')
+    if response == 'ok':
+        return ObjectContainer(header=NAME, message='Item deleted from history.')
+    else:
+        return SabError()
 
 ####################################################################################################
 
