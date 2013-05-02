@@ -125,7 +125,7 @@ def MainMenu():
         oc.add(PopupDirectoryObject(key=Callback(SpeedLimitPopup), title='Set Speed Limit',
             summary='Currently %skbps' % sabStatus['speedlimit']))
     
-        oc.add(DirectoryObject(key=Callback(RestartSab), title='Restart', subtitle='Restart SABnzbd+',
+        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='restart', success_message='SABnzdb+ is restarting.'), title='Restart',
             summary='It may take a minute or two before SABnzbd+ is back online and functions are accessible.'))
         oc.add(DirectoryObject(key=Callback(ShutdownSab), title='ShutDown', subtitle='Shut down SABnzbd+',
             summary='If you shut down SABnzbd+, you will have to exit Plex to restart it manually.'))
@@ -205,18 +205,6 @@ def SpeedLimitPopup():
         success_message='Speedlimit set to %skpbs' % limit), title='%skbps' % limit))
     
     return oc
-
-####################################################################################################
-@route(PREFIX + '/restart')
-def RestartSab():
-
-    mode = 'restart'
-    response = ApiRequest(mode=mode)
-    
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='SABnzdb+ is restarting.')
-    else:
-        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/shutdown')
