@@ -127,8 +127,8 @@ def MainMenu():
     
         oc.add(DirectoryObject(key=Callback(ApiRequest, mode='restart', success_message='SABnzdb+ is restarting.'), title='Restart',
             summary='It may take a minute or two before SABnzbd+ is back online and functions are accessible.'))
-        oc.add(DirectoryObject(key=Callback(ShutdownSab), title='ShutDown', subtitle='Shut down SABnzbd+',
-            summary='If you shut down SABnzbd+, you will have to exit Plex to restart it manually.'))
+        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='shutdown', success_message='SABnzdb+ shutting down.'), title='ShutDown',
+            summary='If you shut down SABnzbd+, you may have to exit Plex to restart it manually (depending on your setup).'))
 
     oc.add(PrefsObject(title='Plug-in Preferences', summary='Set plug-in preferences to allow proper communication with SABnzbd+',
         thumb=R('icon-prefs.png')))
@@ -205,18 +205,6 @@ def SpeedLimitPopup():
         success_message='Speedlimit set to %skpbs' % limit), title='%skbps' % limit))
     
     return oc
-
-####################################################################################################
-@route(PREFIX + '/shutdown')
-def ShutdownSab():
-
-    mode = 'shutdown'
-    response = ApiRequest(mode=mode)
-    
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='SABnzdb+ shutting down.')
-    else:
-        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/queuemenu')
