@@ -238,23 +238,14 @@ def PriorityMenu(nzo_id):
 
     oc = ObjectContainer(title2='Priority')
 
-    oc.add(DirectoryObject(key=Callback(ChangePriority, nzo_id=nzo_id, priority='1'), title='High'))
-    oc.add(DirectoryObject(key=Callback(ChangePriority, nzo_id=nzo_id, priority='0'), title='Normal'))
-    oc.add(DirectoryObject(key=Callback(ChangePriority, nzo_id=nzo_id, priority='-1'), title='Low'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=priority&value=%s&value2=%s' % (nzo_id, '1'),
+        success_message='Item priority changed to "High"'), title='High'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=priority&value=%s&value2=%s' % (nzo_id, '0'),
+        success_message='Item priority changed to "Normal"'), title='Normal'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=priority&value=%s&value2=%s' % (nzo_id, '-1'),
+        success_message='Item priority changed to "Low"'), title='Low'))
 
     return oc
-
-####################################################################################################
-@route(PREFIX + '/priority')
-def ChangePriority(nzo_id, priority):
-
-    mode = 'queue&name=priority&value=%s&value2=%s' % (nzo_id, priority)
-    response = ApiRequest(mode=mode)
-
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='Item priority changed')
-    else:
-        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/movepopup')
