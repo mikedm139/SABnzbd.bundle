@@ -119,7 +119,8 @@ def MainMenu():
             oc.add(PopupDirectoryObject(key=Callback(PauseMenu), title='Pause', subtitle='Pause downloading for a specified time period.',
                 summary = 'Choose a time period from the list and downloading will resume automatically'))
         else:
-            oc.add(PopupDirectoryObject(key=Callback(ResumeSab), title='Resume', subtitle='Resume downloading'))
+            oc.add(PopupDirectoryObject(key=Callback(ApiRequest, mode='resume', success_message='Downloading resumed.'),
+                title='Resume'))
         
         oc.add(PopupDirectoryObject(key=Callback(SpeedLimitPopup), title='Set Speed Limit',
             summary='Currently %skbps' % sabStatus['speedlimit']))
@@ -204,18 +205,6 @@ def SpeedLimitPopup():
         success_message='Speedlimit set to %skpbs' % limit), title='%skbps' % limit))
     
     return oc
-
-####################################################################################################
-@route(PREFIX + '/resume')
-def ResumeSab():
-
-    mode = 'resume'
-    response = ApiRequest(mode=mode)
-
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='Downloading resumed.')
-    else:
-        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/restart')
