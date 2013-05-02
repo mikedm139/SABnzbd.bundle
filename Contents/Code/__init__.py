@@ -74,7 +74,7 @@ def ApiRequest(mode, success_message=None):
     try:
         data = JSON.ObjectFromString(content)
     except:
-        #not all API calls return a JSON response so we'll just return the plain text for those
+        #not all API calls return a JSON response so we'll return the success_message or an error
         if data == 'ok':
             return ObjectContainer(header=NAME, message=success_message)
         else:
@@ -188,32 +188,22 @@ def PauseMenu():
     return oc
 
 ####################################################################################################
-@route(PREFIX + '/speedlimits')
+@route(PREFIX + '/speedlimit')
 def SpeedLimitPopup():
     oc = ObjectContainer()
     
     defaultLimit = Prefs['speedlimit']
     LIMITS = ['100','250','500','1000','1500','2500','3500']
     
-    oc.add(DirectoryObject(key=Callback(SpeedLimit, speedlimit=defaultLimit), title='Default: %skbps' % defaultLimit))
-    oc.add(DirectoryObject(key=Callback(SpeedLimit, speedlimit='0'), title='None'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'config&name=speedlimit&value=%s' % defaultLimit,
+        success_message='Speedlimit set to %skpbs' % defaultLimit), title='Default: %skbps' % defaultLimit))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'config&name=speedlimit&value=%s' % '0',
+        success_message='Speedlimit set to None'), title='None'))
     for limit in LIMITS:
-        oc.add(DirectoryObject(key=Callback(SpeedLimit, speedlimit=limit), title='%skbps' % limit))
+        oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'config&name=speedlimit&value=%s' % limit,
+        success_message='Speedlimit set to %skpbs' % limit), title='%skbps' % limit))
     
     return oc
-
-####################################################################################################
-@route(PREFIX + '/speedlimit')
-def SpeedLimit(speedlimit):
-
-    
-    mode = 'config&name=speedlimit&value=%s' % speedlimit
-    
-    response = ApiRequest(mode=mode)
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='Speedlimit set to %skpbs' % speedlimit)
-    else:
-        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/resume')
