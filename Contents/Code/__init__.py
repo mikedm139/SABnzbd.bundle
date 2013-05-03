@@ -297,24 +297,16 @@ def PostProcessingMenu(nzo_id):
 
     oc = ObjectContainer(title2='Post-Processing')
 
-    oc.add(DirectoryObject(key=Callback(ChangePostProcessing, nzo_id=nzo_id, process='0'), title='Skip'))
-    oc.add(DirectoryObject(key=Callback(ChangePostProcessing, nzo_id=nzo_id, process='1'), title='Repair'))
-    oc.add(DirectoryObject(key=Callback(ChangePostProcessing, nzo_id=nzo_id, process='2'), title='Repair/Unpack'))
-    oc.add(DirectoryObject(key=Callback(ChangePostProcessing, nzo_id=nzo_id, process='3'), title='Repair/Unpack/Delete'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_opts&value=%s&value2=%s' % (nzo_id, '0'),
+        success_message='Post-processing work-flow set to "Skip"'), title='Skip'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_opts&value=%s&value2=%s' % (nzo_id, '1'),
+        success_message='Post-processing work-flow set to "Repair"'), title='Repair'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_opts&value=%s&value2=%s' % (nzo_id, '2'),
+        success_message='Post-processing work-flow set to "Repair/Unpack"'), title='Repair/Unpack'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_opts&value=%s&value2=%s' % (nzo_id, '3'),
+        success_message='Post-processing work-flow set to "Repair/Unpack/Delete"'), title='Repair/Unpack/Delete'))
 
     return oc
-
-####################################################################################################
-@route(PREFIX + '/postprocess')
-def ChangePostProcessing(nzo_id, process):
-
-    mode = 'change_opts&value=%s&value2=%s' % (nzo_id, process)
-    response = ApiRequest(mode=mode)
-
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='Post-processung work-flow changed for this item.')
-    else:
-        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/confirmdelete')
