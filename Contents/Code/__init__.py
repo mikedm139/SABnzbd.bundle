@@ -128,6 +128,10 @@ def MainMenu():
 
     oc.add(PrefsObject(title='Plug-in Preferences', summary='Set plug-in preferences to allow proper communication with SABnzbd+',
         thumb=R('icon-prefs.png')))
+    
+    if API_KEY:
+        oc.add(DirectoryObject(key=Callback(ResetApiKey), title="Reset saved API Key",
+            summary="If you have changed your setup or SABnzbd+ API key, use this to clear the saved key so the new one can be retrieved."))
 
     return oc
 
@@ -318,4 +322,14 @@ def DeleteMenu(sender, nzo_id):
 
     return 
 
+####################################################################################################
+@route(PREFIX + '/resetapikey')
+def ResetApiKey():
+    try:
+        Dict.Reset()
+        return ObjectContainer(header=NAME, message="Saved API Key has been deleted. A new one will now be retrieved.")
+    except:
+        Log("Unable to reset Dict(). Failed to remove saved API Key.")
+        return ObjectContainer(header=NAME, message="Failed to remove saved API Key.")
+    
 ####################################################################################################
