@@ -230,7 +230,8 @@ def HistoryMenu(nzo_id):
         success_message='Item re-added to queue.'), title='Retry'))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='history&name=delete&value=%s' % nzo_id,
         success_message='Item deleted from history.'), title='Delete'))
-    oc.add(DirectoryObject(key=Callback(ClearHistory), title='Clear History'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='history&name=delete&value=all',
+        success_message='All items cleared from history.'), title='Clear History'))
 
     return oc
 
@@ -320,17 +321,5 @@ def DeleteMenu(sender, nzo_id):
         success_message='Deleting item from queue.'), title='Delete item from Queue?'))
 
     return 
-
-####################################################################################################
-@route(PREFIX + '/clearhistory')
-def ClearHistory():
-
-    mode = 'history&name=delete&value=all'
-    response = ApiRequest(mode=mode)
-
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='All items cleared from history.')
-    else:
-        return SabError()
 
 ####################################################################################################
