@@ -1,6 +1,6 @@
 ####################################################################################################
 
-PREFIX = '/applications/sabnzbd'
+PREFIX = '/video/sabnzbd'
 
 NAME          = 'SABnzbd+'
 ART           = 'art-default.png'
