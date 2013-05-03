@@ -258,7 +258,8 @@ def MoveItemPopup(nzo_id):
     i = 0
     
     while i < len(queue['slots']):
-        oc.add(DirectoryObject(key=Callback(MoveItem, nzo_id=nzo_id, target=i), title='%s' % i))
+        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='switch&value=%s&value2=%s' % (nzo_id, i),
+            success_message='Moving item to slot #%s' % i), title='%s' % i))
     
     return oc
 
