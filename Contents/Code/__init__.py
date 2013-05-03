@@ -248,7 +248,7 @@ def PriorityMenu(nzo_id):
     return oc
 
 ####################################################################################################
-@route(PREFIX + '/movepopup')
+@route(PREFIX + '/move')
 def MoveItemPopup(nzo_id):
     
     oc = ObjectContainer()
@@ -264,18 +264,6 @@ def MoveItemPopup(nzo_id):
     return oc
 
 ####################################################################################################
-@route(PREFIX + '/move')
-def MoveItem(nzo_id, target):
-    
-    mode = 'switch&value=%s&value2=%s' % (nzo_id, target)
-    response = ApiRequest(mode=mode)
-
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='Moving item to slot #%s' % query)
-    else:
-        return SabError()
-
-####################################################################################################
 @route(PREFIX + '/categories')
 def CategoryMenu(nzo_id):
 
@@ -284,7 +272,8 @@ def CategoryMenu(nzo_id):
     mode = 'get_cats&output=json'
     categories = ApiRequest(mode=mode)
     for category in categories['categories']:
-        oc.add(DirectoryObject(key=Callback(ChangeCategory, nzo_id=nzo_id, category=category), title=category))
+        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_cat&value=%s&value2=%s' % (nzo_id, category),
+            success_), title=category))
 
     return oc
 
