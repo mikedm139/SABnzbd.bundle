@@ -226,9 +226,10 @@ def HistoryMenu(nzo_id):
 
     oc = ObjectContainer()
 
-    oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'retry&value=%s' % nzo_id,
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='retry&value=%s' % nzo_id,
         success_message='Item re-added to queue.'), title='Retry'))
-    oc.add(DirectoryObject(key=Callback(DeleteFromHistory, nzo_id=nzo_id), title='Delete'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='history&name=delete&value=%s' % nzo_id,
+        success_message='Item deleted from history.'), title='Delete'))
     oc.add(DirectoryObject(key=Callback(ClearHistory), title='Clear History'))
 
     return oc
@@ -319,18 +320,6 @@ def DeleteMenu(sender, nzo_id):
         success_message='Deleting item from queue.'), title='Delete item from Queue?'))
 
     return 
-
-####################################################################################################
-@route(PREFIX + '/historydelete')
-def DeleteFromHistory(nzo_id):
-
-    mode = 'history&name=delete&value=%s' % nzo_id
-    response = ApiRequest(mode=mode)
-
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='Item deleted from history.')
-    else:
-        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/clearhistory')
