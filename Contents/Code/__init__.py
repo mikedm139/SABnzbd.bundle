@@ -314,21 +314,10 @@ def DeleteMenu(sender, nzo_id):
 
     oc = ObjectContainer(title2='Delete item?')
 
-    oc.add(DirectoryObject(key=Callback(DeleteFromQueue, nzo_id=nzo_id), title='Delete item from Queue?'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'queue&name=delete&value=%s' % nzo_id,
+        success_message='Deleting item from queue.'), title='Delete item from Queue?'))
 
     return 
-
-####################################################################################################
-@route(PREFIX + '/queuedelete')
-def DeleteFromQueue(nzo_id):
-
-    mode = 'queue&name=delete&value=%s' % nzo_id
-    response = ApiRequest(mode=mode)
-
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='Deleting item from queue.')
-    else:
-        return SabError()
 
 ####################################################################################################
 @route(PREFIX + '/retry')
