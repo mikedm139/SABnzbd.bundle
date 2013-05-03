@@ -9,8 +9,6 @@ ICON          = 'icon-default.png'
 ####################################################################################################
 
 def Start():
-    Plugin.AddViewGroup('InfoList', viewMode='InfoList', mediaType='items')
-
     ObjectContainer.art = R(ART)
     ObjectContainer.title1 = NAME
     ObjectContainer.view_group = 'InfoList'
