@@ -264,7 +264,7 @@ def MoveItemPopup(nzo_id):
     return oc
 
 ####################################################################################################
-@route(PREFIX + '/categories')
+@route(PREFIX + '/category')
 def CategoryMenu(nzo_id):
 
     oc = ObjectContainer(title2='Categories')
@@ -273,24 +273,12 @@ def CategoryMenu(nzo_id):
     categories = ApiRequest(mode=mode)
     for category in categories['categories']:
         oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_cat&value=%s&value2=%s' % (nzo_id, category),
-            success_), title=category))
+            success_message='Category changed to %s.' % category), title=category))
 
     return oc
 
 ####################################################################################################
-@route(PREFIX + '/category')
-def ChangeCategory(nzo_id, category):
-
-    mode = 'change_cat&value=%s&value2=%s' % (nzo_id, category)
-    response = ApiRequest(mode=mode)
-
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='Category changed for this item.')
-    else:
-        return SabError()
-
-####################################################################################################
-@route(PREFIX + '/scripts')
+@route(PREFIX + '/script')
 def ScriptMenu(nzo_id):
 
     oc = ObjectContainer(title2='Scripts')
@@ -298,22 +286,11 @@ def ScriptMenu(nzo_id):
     mode = 'get_scripts&output=json'
     scripts = ApiRequest(mode=mode)
     for script in scripts['scripts']:
-        oc.add(DirectoryObject(key=Callback(ChangeScript, nzo_id=nzo_id, script=script), title=script))
+        oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'change_script&value=%s&value2=%s' % (nzo_id, script),
+            success_message='Post-processung script changed to %s.' % script), title=script))
 
     return oc
 
-####################################################################################################
-@route(PREFIX + '/script')
-def ChangeScript(sender, nzo_id, script):
-
-    mode = 'change_script&value=%s&value2=%s' % (nzo_id, script)
-    response = ApiRequest(mode=mode)
-
-    if response == 'ok':
-        return ObjectContainer(header=NAME, message='Post-processung script changed for this item.')
-    else:
-        return SabError()
-    
 ####################################################################################################
 @route(PREFIX + '/postprocessing')
 def PostProcessingMenu(nzo_id):
