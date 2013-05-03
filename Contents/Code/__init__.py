@@ -1,5 +1,3 @@
-from base64 import b64encode
-
 ####################################################################################################
 
 PREFIX = '/applications/sabnzbd'
@@ -28,7 +26,7 @@ def AuthHeader():
     header = {}
 
     if Prefs['sabUser'] and Prefs['sabPass']:
-        header = {'Authorization': 'Basic ' + b64encode(Prefs['sabUser'] + ':' + Prefs['sabPass'])}
+        header = {'Authorization': 'Basic ' + String.Base64Encode(Prefs['sabUser'] + ':' + Prefs['sabPass'])}
 
     return header
 
