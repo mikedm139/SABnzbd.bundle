@@ -11,7 +11,6 @@ ICON          = 'icon-default.png'
 def Start():
     ObjectContainer.art = R(ART)
     ObjectContainer.title1 = NAME
-    ObjectContainer.view_group = 'InfoList'
 
     DirectoryObject.thumb = R(ICON)
     PopupDirectoryObject.thumb = R(ICON)
@@ -66,17 +65,20 @@ def ApiKey():
 ####################################################################################################
 @route(PREFIX + '/apirequest')
 def ApiRequest(mode, success_message=None):
+    if success_message:
+        success_message = success_message.replace('"', '')
     content = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
     try:
+        if content.strip().lstrip('-').isdigit():
+            raise e #not JSON
         data = JSON.ObjectFromString(content)
+        return data
     except:
         #not all API calls return a JSON response so we'll return the success_message or an error
-        if data == 'ok':
+        if not content.strip().startswith('error:'):
             return ObjectContainer(header=NAME, message=success_message)
         else:
             return SabError()
-        
-    return data
     
 ####################################################################################################
 @route(PREFIX + '/validateprefs')
@@ -89,9 +91,9 @@ def SabError():
     return ObjectContainer(header=NAME, message='An error occurred. Your request did not succeed')
 
 ####################################################################################################
-@handler(PREFIX, NAME, ART, ICON)
+@handler(PREFIX, NAME, ICON, ART)
 def MainMenu():
-    oc = ObjectContainer(noCache=True)
+    oc = ObjectContainer(no_cache=True)
     
     API_KEY = False
     
@@ -105,14 +107,14 @@ def MainMenu():
         API_KEY = ApiKey()
 
     if API_KEY:
-        oc.add(DirectoryObject(key=Callback(SabQueue), title='Queue', subtitle='View and make changes to the SABnzbd+ queue.',
+        oc.add(DirectoryObject(key=Callback(SabQueue), title='Queue',
             summary='View the queue. Change the order of queued donwloads, delete items from the queue.'))
-        oc.add(DirectoryObject(key=Callback(SabHistory), title='History', subtitle='View SABnzbd\'s download history.',
-            summary='Number of items to display is set in preferences.'))
+        oc.add(DirectoryObject(key=Callback(SabHistory), title='History',
+            summary='View SABnzbd\'s download history. Number of items to display is set in preferences.'))
 
         sabStatus = ApiRequest(mode='queue&start=0&output=json')['queue']
         if sabStatus['paused'] != True:
-            oc.add(PopupDirectoryObject(key=Callback(PauseMenu), title='Pause', subtitle='Pause downloading for a specified time period.',
+            oc.add(PopupDirectoryObject(key=Callback(PauseMenu), title='Pause',
                 summary = 'Choose a time period from the list and downloading will resume automatically'))
         else:
             oc.add(PopupDirectoryObject(key=Callback(ApiRequest, mode='resume', success_message='Downloading resumed.'),
@@ -138,7 +140,7 @@ def MainMenu():
 ####################################################################################################  
 @route(PREFIX +'/queue')
 def SabQueue():
-    oc = ObjectContainer(title2='Queue', noCache=True)
+    oc = ObjectContainer(title2='Queue', no_cache=True)
 
     try:
         queue = ApiRequest(mode='queue&start=0&output=json')['queue']
@@ -148,7 +150,7 @@ def SabQueue():
                 title=item['filename'], summary = 'Completed: ' + item['percentage']+'%\n' + 
                 'Size: '+item['sizeleft']+'/'+item['size'] + '\n' + 'TimeLeft: ' + item['timeleft'] + '\n' + 
                 'Category: ' + str(item['cat']) + '\n' + 'Priority: ' + item['priority'] + '\n' +
-                'Script: ' + item['script'] +))
+                'Script: ' + item['script']))
     except:
         return ObjectContainer(header=NAME, message='Error loading queue')
     
@@ -160,7 +162,7 @@ def SabQueue():
 ####################################################################################################
 @route(PREFIX + '/history')
 def SabHistory():
-    oc = ObjectContainer(title2='History', noCache=True)
+    oc = ObjectContainer(title2='History', no_cache=True)
     history = ApiRequest(mode='history&start=0&limit=%s&output=json' % (Prefs['historyItems']))['history']
 
     for item in history['slots']:
@@ -168,7 +170,7 @@ def SabHistory():
             summary = 'Status: ' + item['status'] + '\n' + 'Size: '+item['size'] + '\n' +
             'Category: ' + str(item['category']) + '\n' + 'Script: ' + str(item['script']) + '\n' +
             'FilePath: ' + str(item['storage']) + '\n' + 'Time to download: ' + str(item['download_time']//3600) +
-            ' hours, ' + str((item['download_time']%3600)//60) + ' minutes, ' + str((item['download_time']%3600)%60) + ' seconds.'
+            ' hours, ' + str((item['download_time']%3600)//60) + ' minutes, ' + str((item['download_time']%3600)%60) + ' seconds.'))
 
     if len(oc) == 0:
         return ObjectContainer(header=NAME, message='History is empty.')
@@ -182,7 +184,7 @@ def PauseMenu():
 
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='pause', success_message='Downloading paused until manually resumed.'),
         title='Until I Resume'))
-    for pause_length in ['30','60','90','120','180']
+    for pause_length in ['30','60','90','120','180']:
         oc.add(DirectoryObject(key=Callback(ApiRequest, mode='config&name=set_pause&value=%d' % pause_length,
             success_message='Downloading paused for %s minutes' % pause_length), title='%s minutes' % pause_length))
 
@@ -252,7 +254,7 @@ def PriorityMenu(nzo_id):
 
 ####################################################################################################
 @route(PREFIX + '/move')
-def MoveItemPopup(nzo_id):
+def MoveItemMenu(nzo_id):
     
     oc = ObjectContainer()
     
@@ -263,6 +265,7 @@ def MoveItemPopup(nzo_id):
     while i < len(queue['slots']):
         oc.add(DirectoryObject(key=Callback(ApiRequest, mode='switch&value=%s&value2=%s' % (nzo_id, i),
             success_message='Moving item to slot #%s' % i), title='%s' % i))
+        i = i + 1
     
     return oc
 
@@ -313,14 +316,14 @@ def PostProcessingMenu(nzo_id):
 
 ####################################################################################################
 @route(PREFIX + '/confirmdelete')
-def DeleteMenu(sender, nzo_id):
+def DeleteMenu(nzo_id):
 
-    oc = ObjectContainer(title2='Delete item?')
+    oc = ObjectContainer(title2='Delete item')
 
-    oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'queue&name=delete&value=%s' % nzo_id,
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=delete&value=%s' % nzo_id,
         success_message='Deleting item from queue.'), title='Delete item from Queue?'))
-
-    return 
+    
+    return oc
 
 ####################################################################################################
 @route(PREFIX + '/resetapikey')
