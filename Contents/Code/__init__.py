@@ -64,7 +64,7 @@ def ApiKey():
 
 ####################################################################################################
 @route(PREFIX + '/apirequest')
-def ApiRequest(mode, success_message=None, parent=None):
+def ApiRequest(mode, success_message=None):
     if success_message:
         success_message = success_message.replace('"', '')
     content = HTTP.Request(GetSabApiUrl(mode), errors='ignore', headers=AuthHeader()).content
@@ -76,18 +76,7 @@ def ApiRequest(mode, success_message=None, parent=None):
     except:
         #not all API calls return a JSON response so we'll return the success_message or an error
         if not content.strip().startswith('error:'):
-            if parent == 'main':
-                oc = MainMenu()
-            elif parent == 'queue':
-                oc = SabQueue()
-            elif parent == 'history':
-                oc = SabHistory()
-            else:
-                return ObjectContainer(header=NAME, message=success_message)
-            oc.header=NAME
-            oc.message=success_message
-            oc.replace_parent=True
-            return oc
+            return ObjectContainer(header=NAME, message=success_message, no_history=True)
         else:
             return SabError()
     
@@ -128,15 +117,15 @@ def MainMenu():
             oc.add(PopupDirectoryObject(key=Callback(PauseMenu), title='Pause',
                 summary = 'Choose a time period from the list and downloading will resume automatically'))
         else:
-            oc.add(PopupDirectoryObject(key=Callback(ApiRequest, mode='resume', success_message='Downloading resumed.',
-                parent='main'), title='Resume'))
+            oc.add(PopupDirectoryObject(key=Callback(ApiRequest, mode='resume', success_message='Downloading resumed.'),
+                title='Resume'))
         
         oc.add(PopupDirectoryObject(key=Callback(SpeedLimitPopup), title='Set Speed Limit',
             summary='Currently %skbps' % sabStatus['speedlimit']))
     
-        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='restart', success_message='SABnzdb+ is restarting.', parent='main'),
+        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='restart', success_message='SABnzdb+ is restarting.'),
             title='Restart', summary='It may take a minute or two before SABnzbd+ is back online and functions are accessible.'))
-        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='shutdown', success_message='SABnzdb+ shutting down.', parent='main'),
+        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='shutdown', success_message='SABnzdb+ shutting down.'),
             title='ShutDown', summary='If you shut down SABnzbd+, you may have to exit Plex to restart it manually (depending on your setup).'))
 
     oc.add(PrefsObject(title='Plug-in Preferences', summary='Set plug-in preferences to allow proper communication with SABnzbd+',
@@ -191,31 +180,31 @@ def SabHistory():
 ####################################################################################################
 @route(PREFIX + '/pause')
 def PauseMenu():
-    oc = ObjectContainer()
+    oc = ObjectContainer(no_history=True)
 
-    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='pause', success_message='Downloading paused until manually resumed.',
-        parent='main'), title='Until I Resume'))
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='pause', success_message='Downloading paused until manually resumed.')
+        , title='Until I Resume'))
     for pause_length in ['30','60','90','120','180']:
         oc.add(DirectoryObject(key=Callback(ApiRequest, mode='config&name=set_pause&value=%d' % pause_length,
-            success_message='Downloading paused for %s minutes' % pause_length, parent='main'), title='%s minutes' % pause_length))
+            success_message='Downloading paused for %s minutes' % pause_length), title='%s minutes' % pause_length))
 
     return oc
 
 ####################################################################################################
 @route(PREFIX + '/speedlimit')
 def SpeedLimitPopup():
-    oc = ObjectContainer()
+    oc = ObjectContainer(no_history=True)
     
     defaultLimit = Prefs['speedlimit']
     LIMITS = ['100','250','500','1000','1500','2500','3500']
     
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'config&name=speedlimit&value=%s' % defaultLimit,
-        success_message='Speedlimit set to %skpbs' % defaultLimit, parent='main'), title='Default: %skbps' % defaultLimit))
+        success_message='Speedlimit set to %skpbs' % defaultLimit), title='Default: %skbps' % defaultLimit))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'config&name=speedlimit&value=%s' % '0',
-        success_message='Speedlimit set to None', parent='main'), title='None'))
+        success_message='Speedlimit set to None'), title='None'))
     for limit in LIMITS:
         oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'config&name=speedlimit&value=%s' % limit,
-        success_message='Speedlimit set to %skpbs' % limit, parent='main'), title='%skbps' % limit))
+        success_message='Speedlimit set to %skpbs' % limit), title='%skbps' % limit))
     
     return oc
 
@@ -223,7 +212,7 @@ def SpeedLimitPopup():
 @route(PREFIX + '/queuemenu')
 def QueueMenu(nzo_id, name):
 
-    oc = ObjectContainer(title2=name)
+    oc = ObjectContainer(title2=name, no_history=True)
 
     oc.add(PopupDirectoryObject(key=Callback(PriorityMenu, nzo_id=nzo_id), title='Change Priority'))
     oc.add(PopupDirectoryObject(key=Callback(MoveItemMenu, nzo_id=nzo_id), title='Move item to new position in queue'))
@@ -237,14 +226,14 @@ def QueueMenu(nzo_id, name):
 @route(PREFIX + '/historymenu')
 def HistoryMenu(nzo_id):
 
-    oc = ObjectContainer()
+    oc = ObjectContainer(no_history=True)
 
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='retry&value=%s' % nzo_id,
-        success_message='Item re-added to queue.', parent='history'), title='Retry'))
+        success_message='Item re-added to queue.'), title='Retry'))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='history&name=delete&value=%s' % nzo_id,
-        success_message='Item deleted from history.', parent='history'), title='Delete'))
+        success_message='Item deleted from history.'), title='Delete'))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='history&name=delete&value=all',
-        success_message='All items cleared from history.', parent='history'), title='Clear History'))
+        success_message='All items cleared from history.'), title='Clear History'))
 
     return oc
 
@@ -252,14 +241,14 @@ def HistoryMenu(nzo_id):
 @route(PREFIX + '/priorities')
 def PriorityMenu(nzo_id):
 
-    oc = ObjectContainer(title2='Priority')
+    oc = ObjectContainer(title2='Priority', no_history=True, replace_parent=True)
 
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=priority&value=%s&value2=%s' % (nzo_id, '1'),
-        success_message='Item priority changed to "High"', parent='queue'), title='High'))
+        success_message='Item priority changed to "High"'), title='High'))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=priority&value=%s&value2=%s' % (nzo_id, '0'),
-        success_message='Item priority changed to "Normal"', parent='queue'), title='Normal'))
+        success_message='Item priority changed to "Normal"'), title='Normal'))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=priority&value=%s&value2=%s' % (nzo_id, '-1'),
-        success_message='Item priority changed to "Low"', parent='queue'), title='Low'))
+        success_message='Item priority changed to "Low"'), title='Low'))
 
     return oc
 
@@ -267,7 +256,7 @@ def PriorityMenu(nzo_id):
 @route(PREFIX + '/move')
 def MoveItemMenu(nzo_id):
     
-    oc = ObjectContainer()
+    oc = ObjectContainer(no_history=True, replace_parent=True)
     
     queue = ApiRequest(mode='queue&start=0&output=json')['queue']
 
@@ -275,7 +264,7 @@ def MoveItemMenu(nzo_id):
     
     while i < len(queue['slots']):
         oc.add(DirectoryObject(key=Callback(ApiRequest, mode='switch&value=%s&value2=%s' % (nzo_id, i),
-            success_message='Moving item to slot #%s' % i, parent='queue'), title='%s' % i))
+            success_message='Moving item to slot #%s' % i), title='%s' % i))
         i = i + 1
     
     return oc
@@ -284,13 +273,13 @@ def MoveItemMenu(nzo_id):
 @route(PREFIX + '/category')
 def CategoryMenu(nzo_id):
 
-    oc = ObjectContainer(title2='Categories')
+    oc = ObjectContainer(title2='Categories', no_history=True, replace_parent=True)
 
     mode = 'get_cats&output=json'
     categories = ApiRequest(mode=mode)
     for category in categories['categories']:
         oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_cat&value=%s&value2=%s' % (nzo_id, category),
-            success_message='Category changed to %s.' % category, parent='queue'), title=category))
+            success_message='Category changed to %s.' % category), title=category))
 
     return oc
 
@@ -298,13 +287,13 @@ def CategoryMenu(nzo_id):
 @route(PREFIX + '/script')
 def ScriptMenu(nzo_id):
 
-    oc = ObjectContainer(title2='Scripts')
+    oc = ObjectContainer(title2='Scripts', no_history=True, replace_parent=True)
 
     mode = 'get_scripts&output=json'
     scripts = ApiRequest(mode=mode)
     for script in scripts['scripts']:
         oc.add(DirectoryObject(key=Callback(ApiRequest, mode = 'change_script&value=%s&value2=%s' % (nzo_id, script),
-            success_message='Post-processung script changed to %s.' % script, parent='queue'), title=script))
+            success_message='Post-processung script changed to %s.' % script), title=script))
 
     return oc
 
@@ -312,16 +301,16 @@ def ScriptMenu(nzo_id):
 @route(PREFIX + '/postprocessing')
 def PostProcessingMenu(nzo_id):
 
-    oc = ObjectContainer(title2='Post-Processing')
+    oc = ObjectContainer(title2='Post-Processing', no_history=True, replace_parent=True)
 
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_opts&value=%s&value2=%s' % (nzo_id, '0'),
-        success_message='Post-processing work-flow set to "Skip"', parent='queue'), title='Skip'))
+        success_message='Post-processing work-flow set to "Skip"'), title='Skip'))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_opts&value=%s&value2=%s' % (nzo_id, '1'),
-        success_message='Post-processing work-flow set to "Repair"', parent='queue'), title='Repair'))
+        success_message='Post-processing work-flow set to "Repair"'), title='Repair'))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_opts&value=%s&value2=%s' % (nzo_id, '2'),
-        success_message='Post-processing work-flow set to "Repair/Unpack"', parent='queue'), title='Repair/Unpack'))
+        success_message='Post-processing work-flow set to "Repair/Unpack"'), title='Repair/Unpack'))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='change_opts&value=%s&value2=%s' % (nzo_id, '3'),
-        success_message='Post-processing work-flow set to "Repair/Unpack/Delete"', parent='queue'), title='Repair/Unpack/Delete'))
+        success_message='Post-processing work-flow set to "Repair/Unpack/Delete"'), title='Repair/Unpack/Delete'))
 
     return oc
 
@@ -329,10 +318,10 @@ def PostProcessingMenu(nzo_id):
 @route(PREFIX + '/confirmdelete')
 def DeleteMenu(nzo_id):
 
-    oc = ObjectContainer(title2='Delete item')
+    oc = ObjectContainer(title2='Delete item', no_history=True, replace_parent=True)
 
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=delete&value=%s' % nzo_id,
-        success_message='Deleting item from queue.', parent='queue'), title='Delete item from Queue?'))
+        success_message='Deleting item from queue.'), title='Delete item from Queue?'))
     
     return oc
 
