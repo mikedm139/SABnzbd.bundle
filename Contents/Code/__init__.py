@@ -185,7 +185,7 @@ def PauseMenu():
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='pause', success_message='Downloading paused until manually resumed.')
         , title='Until I Resume'))
     for pause_length in ['30','60','90','120','180']:
-        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='config&name=set_pause&value=%d' % pause_length,
+        oc.add(DirectoryObject(key=Callback(ApiRequest, mode='config&name=set_pause&value=%s' % pause_length,
             success_message='Downloading paused for %s minutes' % pause_length), title='%s minutes' % pause_length))
 
     return oc
