@@ -242,7 +242,9 @@ def HistoryMenu(nzo_id):
 def PriorityMenu(nzo_id):
 
     oc = ObjectContainer(title2='Priority', no_history=True, replace_parent=True)
-
+    
+    oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=priority&value=%s&value2=%s' % (nzo_id, '2'),
+        success_message='Item priority changed to "Force"'), title='Force'))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=priority&value=%s&value2=%s' % (nzo_id, '1'),
         success_message='Item priority changed to "High"'), title='High'))
     oc.add(DirectoryObject(key=Callback(ApiRequest, mode='queue&name=priority&value=%s&value2=%s' % (nzo_id, '0'),
