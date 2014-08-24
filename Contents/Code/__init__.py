@@ -107,12 +107,14 @@ def MainMenu():
         API_KEY = ApiKey()
 
     if API_KEY:
-        oc.add(DirectoryObject(key=Callback(SabQueue), title='Queue',
+        sabStatus = ApiRequest(mode='queue&start=0&output=json')['queue']
+        speed = sabStatus['kbpersec']
+        if len(speed.split('.')[0]) > 2: speed = speed.split('.')[0]
+        oc.add(DirectoryObject(key=Callback(SabQueue), title='Queue %skpbs' % speed,
             summary='View the queue. Change the order of queued donwloads, delete items from the queue.'))
         oc.add(DirectoryObject(key=Callback(SabHistory), title='History',
             summary='View SABnzbd\'s download history. Number of items to display is set in preferences.'))
 
-        sabStatus = ApiRequest(mode='queue&start=0&output=json')['queue']
         if sabStatus['paused'] != True:
             oc.add(PopupDirectoryObject(key=Callback(PauseMenu), title='Pause',
                 summary = 'Choose a time period from the list and downloading will resume automatically'))
